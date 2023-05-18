@@ -10,6 +10,7 @@ qt_standard_project_setup()
 
 qt_add_executable(appNetworkVisualizer
     main.cpp
+	style.qrc
 )
 
 qt_add_qml_module(appNetworkVisualizer
@@ -26,8 +27,12 @@ set_target_properties(appNetworkVisualizer PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+add_subdirectory(QuickQanava)
+
 target_link_libraries(appNetworkVisualizer
     PRIVATE Qt6::Quick
+	PUBLIC
+	    QuickQanava
 )
 
 install(TARGETS appNetworkVisualizer
