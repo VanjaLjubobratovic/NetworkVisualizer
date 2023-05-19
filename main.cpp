@@ -10,6 +10,8 @@
 
 #include <QRandomGenerator>
 
+#include "graphmodel.h"
+
 #define NODE_DIMEN 100
 
 //Function for accessing Qan.Graph element in QML
@@ -48,8 +50,9 @@ bool readSavedGraph(QPointer<qan::Graph> graph, QString filename) {
 		return false;
 	}
 
-	//Reading nodes
 	QJsonObject jsonObj = jsonDoc.object();
+
+	//Reading nodes
 	QMap<QString, qan::Node*> nodeMap;
 
 	if(jsonObj.contains("nodes")) {
@@ -64,7 +67,6 @@ bool readSavedGraph(QPointer<qan::Graph> graph, QString filename) {
 			n->setLabel(nodeObj["label"].toString());
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
 
-			//TEST
 			nodeMap[nodeKey] = n;
 		}
 	} else {
@@ -98,6 +100,9 @@ int main(int argc, char *argv[])
 	 fixes invisible node text due to darkmode linux*/
 	QQuickStyle::setStyle("Material");
 
+	//qmlRegisterType<GraphModel>("GraphModel", 1, 0, "GraphModel");
+	QPointer<GraphModel> graphModel = new GraphModel();
+
 	QQmlApplicationEngine engine;
 	const QUrl url(u"qrc:/NetworkVisualizer/Main.qml"_qs);
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
@@ -105,6 +110,8 @@ int main(int argc, char *argv[])
 		Qt::QueuedConnection);
 
 	QuickQanava::initialize(&engine);
+
+	engine.rootContext()->setContextProperty("graphModel", graphModel);
 
 	engine.load(url);
 
@@ -120,6 +127,9 @@ int main(int argc, char *argv[])
 	} else {
 		qDebug() << "Json reading success!";
 	}
+
+	//--- Class Transfer test ---
+	graphModel->setGraphElement(graph);
 
 	return app.exec();
 }
