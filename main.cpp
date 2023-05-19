@@ -50,11 +50,12 @@ bool readSavedGraph(QPointer<qan::Graph> graph, QString filename) {
 
 	//Reading nodes
 	QJsonObject jsonObj = jsonDoc.object();
+	QMap<QString, qan::Node*> nodeMap;
 
 	if(jsonObj.contains("nodes")) {
 		QJsonObject nodesObj = jsonObj["nodes"].toObject();
 
-		for(auto nodeKey : nodesObj.keys()) {
+		for(const auto &nodeKey : nodesObj.keys()) {
 			QJsonObject nodeObj = nodesObj[nodeKey].toObject();
 			double x = QRandomGenerator::global()->bounded(1280);
 			double y = QRandomGenerator::global()->bounded(720);
@@ -62,7 +63,27 @@ bool readSavedGraph(QPointer<qan::Graph> graph, QString filename) {
 			auto n = graph->insertNode();
 			n->setLabel(nodeObj["label"].toString());
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
+
+			//TEST
+			nodeMap[nodeKey] = n;
 		}
+	} else {
+		qDebug() << "JSON document contains no nodes";
+	}
+
+	//Reading edges
+	if(jsonObj.contains("edges")) {
+		QJsonObject edgesObj = jsonObj["edges"].toObject();
+
+		for(const auto &edgeKey : edgesObj.keys()) {
+			QJsonObject edgeObj = edgesObj[edgeKey].toObject();
+			QString to = edgeObj["to"].toString();
+			QString from = edgeObj["from"].toString();
+
+			auto e = graph->insertEdge(nodeMap[from], nodeMap[to]);
+		}
+	} else {
+		qDebug() << "JSON document contains no edges";
 	}
 
 	return true;
