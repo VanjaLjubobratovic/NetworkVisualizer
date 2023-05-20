@@ -33,14 +33,15 @@ Window {
 			MenuItem {
 				text: "Open file..."
 				onTriggered:  {
-					fileDialog.open()
 					console.log("File -> Open selected")
+					openFile()
 				}
 			}
 			MenuItem {
 				text: "Save file..."
 				onTriggered: {
 					console.log("File -> Save selected")
+					saveFile()
 				}
 			}
 			MenuSeparator{}
@@ -113,14 +114,30 @@ Window {
 		z:2
 	}
 
+	function openFile() {
+		fileDialog.fileMode = FileDialog.OpenFile
+		fileDialog.title = "Open File"
+		fileDialog.open()
+	}
+
+	function saveFile() {
+		fileDialog.fileMode = FileDialog.SaveFile
+		fileDialog.title = "Save File"
+		fileDialog.open()
+	}
+
 	FileDialog {
 		id: fileDialog
-		title: "Open File"
 		nameFilters: ["JSON files (*.json)"]
 
 		onAccepted: {
-			console.log("Selected file: ", selectedFile)
-			graphModel.readSavedGraph(selectedFile)
+			if(fileDialog.fileMode == FileDialog.OpenFile) {
+				console.log("Opening file: ", selectedFile)
+				graphModel.readFromFile(selectedFile)
+			} else {
+				console.log("Saving file: ", selectedFile)
+				graphModel.saveToFile(selectedFile)
+			}
 		}
 	}
 }

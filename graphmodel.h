@@ -13,13 +13,16 @@ class GraphModel : public QObject
 	explicit GraphModel(QObject *parent = nullptr);
 	QPointer<qan::Graph> getGraphElement();
 	QMap<QString, QPointer<qan::Node>>* getNodes();
+	QMap<QString, QPointer<qan::Edge>>* getEdges();
 
 	void setGraphElement(QPointer<qan::Graph>);
 	void setNodeMap(QMap<QString, QPointer<qan::Node>>*);
+	void setEdgeMap(QMap<QString, QPointer<qan::Edge>>*);
 
 	void clearGraph();
 
-	Q_INVOKABLE bool readSavedGraph(QUrl path);
+	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
+	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
 	Q_INVOKABLE void addNode();
 
 
@@ -32,6 +35,9 @@ class GraphModel : public QObject
   private:
 	QPointer<qan::Graph> m_graphElement;
 	QMap<QString, QPointer<qan::Node>> m_nodeMap;
+	QMap<QString, QPointer<qan::Edge>> m_edgeMap;
+
+	QString getNodeId(QPointer<qan::Node> targetNode);
 };
 
 #endif // CUSTOMGRAPH_H
