@@ -1,5 +1,6 @@
 #ifndef GRAPHMODEL_H
 #define GRAPHMODEL_H
+#define NODE_DIMEN 100
 
 #include <QObject>
 #include <QDebug>
@@ -16,6 +17,9 @@ class GraphModel : public QObject
 	void setGraphElement(QPointer<qan::Graph>);
 	void setNodeMap(QMap<QString, QPointer<qan::Node>>*);
 
+	void clearGraph();
+
+	Q_INVOKABLE bool readSavedGraph(QUrl path);
 	Q_INVOKABLE void addNode();
 
 

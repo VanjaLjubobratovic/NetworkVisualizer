@@ -120,6 +120,7 @@ Window {
 
 		onAccepted: {
 			console.log("Selected file: ", selectedFile)
+			graphModel.readSavedGraph(selectedFile)
 		}
 	}
 }
