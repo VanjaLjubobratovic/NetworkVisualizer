@@ -6,14 +6,15 @@ GraphModel::GraphModel(QObject *parent)
 
 }
 
-void GraphModel::setGraphElement(QPointer<qan::Graph> graph)
-{
+void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	m_graphElement = graph;
+	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::clearGraph() {
 	m_graphElement->clearGraph();
 	m_nodeMap.clear();
+	m_edgeMap.clear();
 }
 
 bool GraphModel::readFromFile(QUrl fileUrl) {
@@ -134,13 +135,28 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-//Turn this into a generalized function for adding any node
-void GraphModel::addNode() {
-	qan::Node* n = m_graphElement->insertNode();
-	n->setLabel("New node");
+void GraphModel::drawNewNode(const QString label) {
+	QPointer<qan::Node> n = m_graphElement->insertNode();
+	n->setLabel(label);
 	n->getItem()->setRect({0, 0, 100, 100});
 
-	m_nodeMap[n->getLabel()] = n;
+	QString id = generateUID(m_nodeMap);
+	m_nodeMap.insert(id, n);
+
+	qDebug() << "New node inserted:" << id;
+}
+
+//Slot for when a new edge is drawn via UI
+void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
+	if (edgeExists(e)) {
+		qDebug() << "Edge already exists, ignoring...";
+		return;
+	}
+
+	QString id = generateUID(m_edgeMap);
+	m_edgeMap.insert(id, e);
+
+	qDebug() << "New edge inserted:" << id;
 }
 
 //Function for finding a key for a specified node object
@@ -151,6 +167,42 @@ QString GraphModel::getNodeId(QPointer<qan::Node> targetNode) {
 			return it.key();
 		}
 	}
-
 	return nullptr;
+}
+
+QString GraphModel::getEdgeId(QPointer<qan::Edge> targetEdge) {
+	for (auto it = m_edgeMap.begin(); it != m_edgeMap.end(); ++it) {
+		if(it.value() == targetEdge) {
+			return it.key();
+		}
+	}
+	return nullptr;
+}
+
+bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
+	for (auto it = m_edgeMap.begin(); it != m_edgeMap.end(); ++it) {
+		auto e = it.value().get();
+
+		//Possibly make edge comparator separate function
+		if((e->getSource() == targetEdge->getSource()) && (e->getDestination() == targetEdge->getDestination())) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+template<typename T>
+QString GraphModel::generateUID(const QHash<QString, QPointer<T>> &container) {
+	const QString charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	QString randomId;
+	do {
+		randomId.clear();
+		for (int i = 0; i < ID_LENGTH; i++) {
+			int rndIndex = QRandomGenerator::global()->bounded(charSet.length());
+			randomId.append(charSet.at(rndIndex));
+		}
+	} while(container.contains(randomId));
+
+	return randomId;
 }

@@ -6,17 +6,12 @@ import QtQuick.Dialogs
 
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
-//import GraphModel 1.0
 
 Window {
 	width: 1280
 	height: 720
 	visible: true
 	title: qsTr("Network visualizer")
-
-	/*GraphModel {
-		id: graphModel
-	}*/
 
 	MenuBar {
 		id: topMenuBar
@@ -28,6 +23,7 @@ Window {
 				text: "New graph..."
 				onTriggered:  {
 					console.log("File -> Open selected")
+					graphModel.clearGraph();
 				}
 			}
 			MenuItem {
@@ -56,6 +52,22 @@ Window {
 		Menu {
 			title: "Edit"
 			Material.theme: Material.Dark
+			MenuItem {
+				text: "Enable drawing"
+				id: drawingCheckbox
+				checkable: true
+				checked: false
+
+				onCheckedChanged: {
+					if(checked) {
+						graphElement.connectorEnabled = true
+						addNodeBtn.enabled = true
+					} else {
+						graphElement.connectorEnabled = false
+						addNodeBtn.enabled = false
+					}
+				}
+			}
 		}
 
 		Menu {
@@ -71,8 +83,13 @@ Window {
 		anchors.fill: parent
 		navigable: true
 		graph: Qan.Graph {
+			id: graphElement
 			objectName: "graph"
 			anchors.fill: parent
+			connectorEnabled: false;
+			/*onConnectorEdgeInserted: {
+				graphModel.drawNewEdge(edge)
+			}*/
 		}
 
 		z:1
@@ -86,11 +103,12 @@ Window {
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.bottomMargin: 10
+		enabled: false
 
 		Material.background: Material.BlueGrey
 
 		onClicked: {
-			graphModel.addNode();
+			graphModel.drawNewNode();
 		}
 
 		z:2
