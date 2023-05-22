@@ -87,9 +87,14 @@ Window {
 			objectName: "graph"
 			anchors.fill: parent
 			connectorEnabled: false;
-			/*onConnectorEdgeInserted: {
-				graphModel.drawNewEdge(edge)
-			}*/
+		}
+
+		Keys.onPressed: (event) => {
+			if(event.key == Qt.Key_Delete) {
+				console.log("Delete pressed");
+				event.accepted = true
+				graphModel.removeSelected()
+			}
 		}
 
 		z:1

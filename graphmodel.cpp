@@ -11,6 +11,40 @@ void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
+void GraphModel::removeSelected() {
+	auto& selectedNodes = m_graphElement->getSelectedNodes();
+	auto& selectedEdges = m_graphElement->getSelectedEdges();
+
+	if(!(selectedNodes.size() + selectedEdges.size())) {
+		qDebug() << "GraphModel::removeSelected() -> No elements selected, ignoring...";
+		return;
+	}
+
+	for(auto node : selectedNodes) {
+		QString key = getNodeId(node);
+		m_nodeMap.remove(key);
+		m_graphElement->removeNode(node);
+	}
+
+	for(auto edge : selectedEdges) {
+		QString key = getEdgeId(edge);
+		m_edgeMap.remove(key);
+		m_graphElement->removeEdge(edge);
+	}
+
+	// Deleting "dangling edges" left after node deletion
+	for(auto key : m_edgeMap.keys()) {
+		if (!m_edgeMap.value(key)) {
+			qDebug() << "Removing dangling edge:" << key;
+			m_edgeMap.remove(key);
+		}
+	}
+
+	//qDebug() << "EDGES" << m_edgeMap;
+	//qDebug() << "NODES" << m_nodeMap;
+}
+
+
 void GraphModel::clearGraph() {
 	m_graphElement->clearGraph();
 	m_nodeMap.clear();
@@ -37,6 +71,13 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		qDebug() << "Top level JSON element is not an object";
 		return false;
 	}
+
+	/* insertEdge() function triggers the same signal
+	 * like drawing in UI does so the slot function gets
+	 * called and adds a duplicate edge.
+	 * m_loading mitigates that.
+	 */
+	m_loading = true;
 
 	QJsonObject jsonObj = jsonDoc.object();
 
@@ -76,6 +117,8 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 	} else {
 		qDebug() << "JSON document contains no edges";
 	}
+
+	m_loading = false;
 
 	return true;
 
@@ -148,7 +191,7 @@ void GraphModel::drawNewNode(const QString label) {
 
 //Slot for when a new edge is drawn via UI
 void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
-	if (edgeExists(e)) {
+	if (edgeExists(e) || m_loading) {
 		qDebug() << "Edge already exists, ignoring...";
 		return;
 	}

@@ -24,6 +24,7 @@ class GraphModel : public QObject
 	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
 	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
 	Q_INVOKABLE void drawNewNode(const QString label = "New Node");
+	Q_INVOKABLE void removeSelected();
 
 
   signals:
@@ -37,6 +38,7 @@ class GraphModel : public QObject
 	QPointer<qan::Graph> m_graphElement;
 	QHash<QString, QPointer<qan::Node>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
+	bool m_loading = false;
 
 	QString getNodeId(QPointer<qan::Node> targetNode);
 	QString getEdgeId(QPointer<qan::Edge> targetEdge);
