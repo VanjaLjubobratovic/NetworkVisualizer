@@ -1,0 +1,39 @@
+{
+	"adjacency": {
+		"a": ["1", "2"],
+		"b": ["3"]
+	},
+
+	"nodes": {
+		"a": {
+			"label": "Json node a"
+		},
+		"b": {
+			"label": "Json node b"
+		},
+		"c": {
+			"label": "Json node c"
+		}
+	},
+
+	"edges": {
+		"1": {
+			"from": "a",
+			"to": "b",
+			"data": {
+			}
+		},
+		"2": {
+			"from": "a",
+			"to": "c",
+			"data": {
+			}
+		},
+		"3": {
+			"from": "b",
+			"to": "c",
+			"data": {
+			}
+		}
+	}
+}

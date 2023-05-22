@@ -11,6 +11,9 @@ qt_standard_project_setup()
 qt_add_executable(appNetworkVisualizer
     main.cpp
 	style.qrc
+	graphmodel.cpp
+	graphmodel.h
+	graphData.json
 )
 
 qt_add_qml_module(appNetworkVisualizer
