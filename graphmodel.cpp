@@ -94,7 +94,9 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 			auto n = m_graphElement->insertNode();
 			n->setLabel(nodeObj["label"].toString());
+			//TODO: Change node positioning
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
+			setNodeStyle(n);
 
 			m_nodeMap[nodeKey] = n;
 		}
@@ -181,7 +183,8 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 void GraphModel::drawNewNode(const QString label) {
 	QPointer<qan::Node> n = m_graphElement->insertNode();
 	n->setLabel(label);
-	n->getItem()->setRect({0, 0, 100, 100});
+	n->getItem()->setRect({100, 100, NODE_DIMEN, NODE_DIMEN});
+	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
 	m_nodeMap.insert(id, n);
@@ -191,8 +194,15 @@ void GraphModel::drawNewNode(const QString label) {
 
 //Slot for when a new edge is drawn via UI
 void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
-	if (edgeExists(e) || m_loading) {
+	if(m_loading) {
+		qDebug() << "Loading from JSON, ignoring duplicate edges...";
+		return;
+	}
+
+	if (edgeExists(e)) {
+		//Drawing via UI already added duplicate edge to graph here so it must be removed
 		qDebug() << "Edge already exists, ignoring...";
+		m_graphElement->removeEdge(e);
 		return;
 	}
 
@@ -232,6 +242,34 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 		}
 	}
 	return false;
+}
+
+void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
+	n->getItem()->setResizable(false);
+
+	/* Generates round bounding polygon so
+	 * there is never a gap between edges
+	 * and dest / src nodes
+	 */
+	QPainterPath path;
+	qreal shapeRadius = 100.;   // In percentage = 100% !
+	path.addRoundedRect(QRectF{ 0., 0., NODE_DIMEN, NODE_DIMEN}, shapeRadius, shapeRadius);
+	QPolygonF boundingShape =  path.toFillPolygon(QTransform{});
+	n->getItem()->setBoundingShape(boundingShape);
+
+
+	n->style()->setBackRadius(NODE_RADIUS);
+	n->style()->setBorderColor("darkblue");
+	n->style()->setBorderWidth(2);
+
+	n->style()->setFillType(qan::NodeStyle::FillType::FillGradient);
+	n->style()->setBaseColor("#368bfc");
+	n->style()->setBackColor("#c5dbfa");
+	n->style()->setBackOpacity(70);
+
+	n->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
+	n->style()->setEffectColor("black");
+	n->style()->setEffectRadius(7);
 }
 
 

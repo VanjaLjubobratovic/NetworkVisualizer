@@ -1,11 +1,16 @@
 #ifndef GRAPHMODEL_H
 #define GRAPHMODEL_H
-#define NODE_DIMEN 100
+
+#define NODE_DIMEN 80
+#define NODE_RADIUS (NODE_DIMEN / 2)
 #define ID_LENGTH 3
 
 #include <QObject>
 #include <QDebug>
 #include <QuickQanava>
+
+#include <QPainter>
+#include <QPainterPath>
 
 class GraphModel : public QObject
 {
@@ -43,6 +48,8 @@ class GraphModel : public QObject
 	QString getNodeId(QPointer<qan::Node> targetNode);
 	QString getEdgeId(QPointer<qan::Edge> targetEdge);
 	bool edgeExists(QPointer<qan::Edge> targetEdge);
+
+	void setNodeStyle(QPointer<qan::Node> n);
 
 	template<typename T>
 	QString generateUID(const QHash<QString, QPointer<T>> &container);

@@ -11,8 +11,7 @@
 #include <QRandomGenerator>
 
 #include "graphmodel.h"
-
-#define NODE_DIMEN 100
+#include <QuickQanava/samples/style/custom.h>
 
 //Function for accessing Qan.Graph element in QML
 QPointer<qan::Graph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
@@ -53,6 +52,7 @@ int main(int argc, char *argv[])
 
 	//Make this a graphModel method
 	QPointer<qan::Graph> graph = findGraph(&engine, "graph");
+
 	if(!graph) {
 		qDebug() << "Graph element not found!";
 		emit engine.quit();
