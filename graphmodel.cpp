@@ -122,6 +122,9 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 	m_loading = false;
 
+	//Calculating layout
+	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
+
 	return true;
 
 }
@@ -244,6 +247,8 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 	return false;
 }
 
+
+//TODO: There has to be a cleaner way of doing this
 void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 	n->getItem()->setResizable(false);
 
@@ -270,6 +275,82 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 	n->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
 	n->style()->setEffectColor("black");
 	n->style()->setEffectRadius(7);
+}
+
+void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
+	int nodeCount = m_graphElement->getNodeCount();
+	int k = 30; //ideal node spacing in px;
+	double c = sqrt((1280*720) / nodeCount);
+	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
+
+	for (int i = 0; i < 100; i++) {
+		//Calculating repulsive forces
+		for(int u = 0; u < nodeCount; u++) {
+			for(int v = 0; v < nodeCount; v++) {
+				if(u == v)
+					continue;
+
+				int ux = nodeList.at(u)->getItem()->x();
+				int uy = nodeList.at(u)->getItem()->y();
+
+				double dx = ux - nodeList.at(v)->getItem()->x();
+				double dy = uy - nodeList.at(v)->getItem()->y();
+				double distance = sqrt(dx*dx + dy*dy);
+				double force = k * k / distance;
+
+				QPointF newPoint(displacement[u].x() + (dx / distance) * force,
+								  displacement[u].y() + (dy / distance) * force);
+
+				//qDebug() << ux << uy << dx << dy << distance << force;
+
+				//qDebug() << "REPULSIVE:" << newPoint;
+				//nodeList.at(u)->getItem()->setPosition(newPoint);
+				displacement[u] = newPoint;
+			}
+		}
+
+		//Calculating attractive forces
+		for(const auto& edge : edgeList) {
+			qan::Node* src = edge->getSource();
+			qan::Node* dst = edge->getDestination();
+
+			double dx = src->getItem()->x() - dst->getItem()->x();
+			double dy = src->getItem()->y() - dst->getItem()->y();
+			double distance = sqrt(dx*dx + dy*dy);
+			double force = k * k / distance;
+
+			int srcInd = nodeList.indexOf(src);
+			int dstInd = nodeList.indexOf(dst);
+
+
+			QPointF disSrc(displacement[srcInd].x() - (dx / distance) * force,
+							  displacement[srcInd].y() - (dy / distance) * force);
+			QPointF disDst(displacement[dstInd].x() + (dx / distance) * force,
+							displacement[dstInd].y() + (dy / distance) * force);
+
+
+			//qDebug() << "ATTRACTIVE:" << "Src-" << disSrc << "|| Dst-" << disDst;
+
+			displacement[srcInd] = disSrc;
+			displacement[dstInd] = disDst;
+		}
+
+		//TODO: implement some form of annealing
+		for(int j = 0; j < nodeCount; j++) {
+			double dispNorm = sqrt(displacement[j].x() * displacement[j].x() +
+									displacement[j].y() * displacement[j].y());
+			double ratio = dispNorm / std::max(1.0, dispNorm);
+
+			double nx = (displacement[j].x() / dispNorm) * std::min(dispNorm, c);
+			double ny = (displacement[j].y() / dispNorm) * std::min(dispNorm, c);
+
+			//qDebug() << displacement[j].x() << displacement[j].y();
+			//qDebug() << dispNorm << ratio << nx << ny;
+			qDebug() << "NX:" << nx << "|| NY:" << ny;
+
+			nodeList[j]->getItem()->setPosition(QPointF(nx, ny));
+		}
+	}
 }
 
 
