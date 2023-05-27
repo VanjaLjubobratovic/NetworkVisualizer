@@ -11,6 +11,10 @@ void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
+void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
+	m_graphView = gw;
+}
+
 void GraphModel::removeSelected() {
 	auto& selectedNodes = m_graphElement->getSelectedNodes();
 	auto& selectedEdges = m_graphElement->getSelectedEdges();
@@ -279,7 +283,7 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 
 void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
 	int nodeCount = m_graphElement->getNodeCount();
-	int k = 30; //ideal node spacing in px;
+	int k = 40; //spring constant
 	double c = sqrt((1280*720) / nodeCount);
 	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
 
@@ -344,13 +348,24 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 			double nx = (displacement[j].x() / dispNorm) * std::min(dispNorm, c);
 			double ny = (displacement[j].y() / dispNorm) * std::min(dispNorm, c);
 
-			//qDebug() << displacement[j].x() << displacement[j].y();
-			//qDebug() << dispNorm << ratio << nx << ny;
-			qDebug() << "NX:" << nx << "|| NY:" << ny;
+			qDebug() << QString("dispNorm: %1, ratio: %2, nx: %3, ny: %4")
+							.arg(dispNorm).arg(ratio).arg(nx).arg(ny);
 
 			nodeList[j]->getItem()->setPosition(QPointF(nx, ny));
 		}
 	}
+
+
+	//Center view to node coordinate average
+	double sumX = 0;
+	double sumY = 0;
+	for (auto& node : nodeList) {
+		sumX += node->getItem()->x();
+		sumY += node->getItem()->y();
+	}
+
+	QPointF viewCenter(sumX / nodeCount, sumY / nodeCount);
+	m_graphView->centerOnPosition(viewCenter);
 }
 
 

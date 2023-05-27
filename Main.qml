@@ -80,6 +80,7 @@ Window {
 
 	Qan.GraphView {
 		id: graphView
+		objectName: "graphView"
 		anchors.fill: parent
 		navigable: true
 		graph: Qan.Graph {

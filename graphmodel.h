@@ -22,8 +22,10 @@ class GraphModel : public QObject
 	QHash<QString, QPointer<qan::Edge>>* getEdges();
 
 	void setGraphElement(QPointer<qan::Graph>);
+	void setGraphView(QPointer<qan::GraphView>);
 	void setNodeMap(QHash<QString, QPointer<qan::Node>>*);
 	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
+
 
 	Q_INVOKABLE void clearGraph();
 	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
@@ -41,6 +43,7 @@ class GraphModel : public QObject
 
   private:
 	QPointer<qan::Graph> m_graphElement;
+	QPointer<qan::GraphView> m_graphView;
 	QHash<QString, QPointer<qan::Node>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
 	bool m_loading = false;
