@@ -1,4 +1,5 @@
 #include "graphmodel.h"
+#include <cmath>
 
 GraphModel::GraphModel(QObject *parent)
 	: QObject{parent}
@@ -284,7 +285,7 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
 	int nodeCount = m_graphElement->getNodeCount();
 	int k = 40; //spring constant
-	double c = sqrt((1280*720) / nodeCount);
+	double c = sqrt((1280*720) / std::max(1, nodeCount));
 	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
 
 	for (int i = 0; i < 100; i++) {
@@ -299,7 +300,8 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 				double dx = ux - nodeList.at(v)->getItem()->x();
 				double dy = uy - nodeList.at(v)->getItem()->y();
-				double distance = sqrt(dx*dx + dy*dy);
+
+				double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
 				double force = k * k / distance;
 
 				QPointF newPoint(displacement[u].x() + (dx / distance) * force,
@@ -307,8 +309,6 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 				//qDebug() << ux << uy << dx << dy << distance << force;
 
-				//qDebug() << "REPULSIVE:" << newPoint;
-				//nodeList.at(u)->getItem()->setPosition(newPoint);
 				displacement[u] = newPoint;
 			}
 		}
@@ -320,7 +320,7 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 			double dx = src->getItem()->x() - dst->getItem()->x();
 			double dy = src->getItem()->y() - dst->getItem()->y();
-			double distance = sqrt(dx*dx + dy*dy);
+			double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
 			double force = k * k / distance;
 
 			int srcInd = nodeList.indexOf(src);
@@ -334,6 +334,9 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 
 			//qDebug() << "ATTRACTIVE:" << "Src-" << disSrc << "|| Dst-" << disDst;
+			/*qDebug() << QString("Dis. SRC: %1x %2y, Dis. DST: %3x %4y")
+							 .arg(disSrc.x()).arg(disSrc.y())
+							 .arg(disDst.x()).arg(disDst.y());*/
 
 			displacement[srcInd] = disSrc;
 			displacement[dstInd] = disDst;
@@ -341,9 +344,15 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 		//TODO: implement some form of annealing
 		for(int j = 0; j < nodeCount; j++) {
+			qDebug() << QString("%1 - Dis. X: %2 || DIS. Y: %3")
+							 .arg(j).arg(displacement[j].x()).arg(displacement[j].y());
+
 			double dispNorm = sqrt(displacement[j].x() * displacement[j].x() +
 									displacement[j].y() * displacement[j].y());
+
+			dispNorm = std::max(1.0, dispNorm); //division by 0 mitigation
 			double ratio = dispNorm / std::max(1.0, dispNorm);
+
 
 			double nx = (displacement[j].x() / dispNorm) * std::min(dispNorm, c);
 			double ny = (displacement[j].y() / dispNorm) * std::min(dispNorm, c);
