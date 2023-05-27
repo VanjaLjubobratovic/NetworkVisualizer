@@ -32,6 +32,7 @@ class GraphModel : public QObject
 	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
 	Q_INVOKABLE void drawNewNode(const QString label = "New Node");
 	Q_INVOKABLE void removeSelected();
+	Q_INVOKABLE void forceDirectedLayout();
 
 
   signals:

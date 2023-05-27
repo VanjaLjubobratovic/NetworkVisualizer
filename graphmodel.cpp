@@ -282,13 +282,20 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 	n->style()->setEffectRadius(7);
 }
 
+//QML invokable function without arguments
+//I didn't want to change original function signature for this
+//I know it's dumb
+void GraphModel::forceDirectedLayout() {
+	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
+}
+
 void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
 	int nodeCount = m_graphElement->getNodeCount();
 	int k = 70; //spread constant (bigger means nodes more spread out)
 	double c = sqrt((1280*720) / std::max(1, nodeCount));
 	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 200; i++) {
 		//Calculating repulsive forces
 		for(int u = 0; u < nodeCount; u++) {
 			for(int v = 0; v < nodeCount; v++) {

@@ -68,6 +68,15 @@ Window {
 					}
 				}
 			}
+
+			MenuItem {
+				text: "Auto arrange nodes"
+				id: arrangeNodes
+
+				onTriggered: {
+					graphModel.forceDirectedLayout(graphModel.ge);
+				}
+			}
 		}
 
 		Menu {
