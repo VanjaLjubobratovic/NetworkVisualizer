@@ -284,7 +284,7 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 
 void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
 	int nodeCount = m_graphElement->getNodeCount();
-	int k = 40; //spring constant
+	int k = 70; //spread constant (bigger means nodes more spread out)
 	double c = sqrt((1280*720) / std::max(1, nodeCount));
 	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
 
@@ -321,7 +321,7 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 			double dx = src->getItem()->x() - dst->getItem()->x();
 			double dy = src->getItem()->y() - dst->getItem()->y();
 			double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
-			double force = k * k / distance;
+			double force = (distance + k) * (distance + k) / (k * k);
 
 			int srcInd = nodeList.indexOf(src);
 			int dstInd = nodeList.indexOf(dst);
@@ -344,8 +344,8 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 		//TODO: implement some form of annealing
 		for(int j = 0; j < nodeCount; j++) {
-			qDebug() << QString("%1 - Dis. X: %2 || DIS. Y: %3")
-							 .arg(j).arg(displacement[j].x()).arg(displacement[j].y());
+			/*qDebug() << QString("%1 - Dis. X: %2 || DIS. Y: %3")
+							 .arg(j).arg(displacement[j].x()).arg(displacement[j].y());*/
 
 			double dispNorm = sqrt(displacement[j].x() * displacement[j].x() +
 									displacement[j].y() * displacement[j].y());
@@ -357,8 +357,8 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 			double nx = (displacement[j].x() / dispNorm) * std::min(dispNorm, c);
 			double ny = (displacement[j].y() / dispNorm) * std::min(dispNorm, c);
 
-			qDebug() << QString("dispNorm: %1, ratio: %2, nx: %3, ny: %4")
-							.arg(dispNorm).arg(ratio).arg(nx).arg(ny);
+			/*qDebug() << QString("dispNorm: %1, ratio: %2, nx: %3, ny: %4")
+							.arg(dispNorm).arg(ratio).arg(nx).arg(ny);*/
 
 			nodeList[j]->getItem()->setPosition(QPointF(nx, ny));
 		}
