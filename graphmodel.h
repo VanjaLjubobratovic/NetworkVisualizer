@@ -56,6 +56,7 @@ class GraphModel : public QObject
 	void setNodeStyle(QPointer<qan::Node> n);
 
 	void forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList);
+	QPointF getNodeCenter(QPointer<qan::Node>);
 
 	template<typename T>
 	QString generateUID(const QHash<QString, QPointer<T>> &container);

@@ -289,34 +289,51 @@ void GraphModel::forceDirectedLayout() {
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
 }
 
+QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){
+	QPointF dxy(NODE_DIMEN / 2, NODE_DIMEN / 2);
+	QPointF corner = n->getItem()->position();
+	return corner - dxy;
+}
+
 void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
 	int nodeCount = m_graphElement->getNodeCount();
-	int k = 70; //spread constant (bigger means nodes more spread out)
-	double c = sqrt((1280*720) / std::max(1, nodeCount));
-	std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
 
-	for (int i = 0; i < 200; i++) {
+	//TODO: Define as constants
+	int k = 200; //ideal node spacing (center to center)
+	double temp = 100 * sqrt(nodeCount);
+	double max_force = 100.0;
+
+	for (int i = 0; i < 80; i++) {
+		std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
+
 		//Calculating repulsive forces
 		for(int u = 0; u < nodeCount; u++) {
 			for(int v = 0; v < nodeCount; v++) {
 				if(u == v)
 					continue;
 
-				int ux = nodeList.at(u)->getItem()->x();
-				int uy = nodeList.at(u)->getItem()->y();
+				QPointF current = getNodeCenter(nodeList.at(u));
+				QPointF other = getNodeCenter(nodeList.at(v));
+				QPointF delta = current - other;
 
-				double dx = ux - nodeList.at(v)->getItem()->x();
-				double dy = uy - nodeList.at(v)->getItem()->y();
+				/*qDebug() << QString("Corner: (%1, %2) || Center: (%3, %4)")
+								 .arg(nodeList.at(u)->getItem()->position().x())
+								 .arg(nodeList.at(u)->getItem()->position().y())
+								 .arg(current.x())
+								 .arg(current.y());*/
 
-				double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
+				double distance = sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+				distance = std::max(0.1, distance);
+
+				if(distance > 1000.0)
+					continue;
+
 				double force = k * k / distance;
+				//force = std::min(force, max_force);
 
-				QPointF newPoint(displacement[u].x() + (dx / distance) * force,
-								  displacement[u].y() + (dy / distance) * force);
+				QPointF displacementPoint(delta.x() / distance * force, delta.y() / distance * force);
 
-				//qDebug() << ux << uy << dx << dy << distance << force;
-
-				displacement[u] = newPoint;
+				displacement[u] += displacementPoint;
 			}
 		}
 
@@ -327,48 +344,37 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 			double dx = src->getItem()->x() - dst->getItem()->x();
 			double dy = src->getItem()->y() - dst->getItem()->y();
+
 			double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
-			double force = (distance + k) * (distance + k) / (k * k);
+
+			double force = (distance * distance) / k;
+			//force = std::min(force, max_force);
 
 			int srcInd = nodeList.indexOf(src);
 			int dstInd = nodeList.indexOf(dst);
 
+			QPointF disSrc(dx / distance * force, dy / distance * force);
+			QPointF disDst(dx / distance * force, dy / distance * force);
 
-			QPointF disSrc(displacement[srcInd].x() - (dx / distance) * force,
-							  displacement[srcInd].y() - (dy / distance) * force);
-			QPointF disDst(displacement[dstInd].x() + (dx / distance) * force,
-							displacement[dstInd].y() + (dy / distance) * force);
-
-
-			//qDebug() << "ATTRACTIVE:" << "Src-" << disSrc << "|| Dst-" << disDst;
-			/*qDebug() << QString("Dis. SRC: %1x %2y, Dis. DST: %3x %4y")
-							 .arg(disSrc.x()).arg(disSrc.y())
-							 .arg(disDst.x()).arg(disDst.y());*/
-
-			displacement[srcInd] = disSrc;
-			displacement[dstInd] = disDst;
+			displacement[srcInd] -= disSrc;
+			displacement[dstInd] += disDst;
 		}
 
-		//TODO: implement some form of annealing
-		for(int j = 0; j < nodeCount; j++) {
-			/*qDebug() << QString("%1 - Dis. X: %2 || DIS. Y: %3")
-							 .arg(j).arg(displacement[j].x()).arg(displacement[j].y());*/
-
+		for (int j = 0; j < nodeCount; j++) {
 			double dispNorm = sqrt(displacement[j].x() * displacement[j].x() +
 									displacement[j].y() * displacement[j].y());
 
-			dispNorm = std::max(1.0, dispNorm); //division by 0 mitigation
-			double ratio = dispNorm / std::max(1.0, dispNorm);
+			if(dispNorm < 1.0)
+				continue;
 
+			double cappedDispNorm = std::min(dispNorm, temp);
 
-			double nx = (displacement[j].x() / dispNorm) * std::min(dispNorm, c);
-			double ny = (displacement[j].y() / dispNorm) * std::min(dispNorm, c);
-
-			/*qDebug() << QString("dispNorm: %1, ratio: %2, nx: %3, ny: %4")
-							.arg(dispNorm).arg(ratio).arg(nx).arg(ny);*/
-
-			nodeList[j]->getItem()->setPosition(QPointF(nx, ny));
+			QPointF newPos = nodeList.at(j)->getItem()->position() + displacement[j] / dispNorm * cappedDispNorm;
+			nodeList.at(j)->getItem()->setPosition(newPos);
 		}
+
+		if(temp > 1.5)
+			temp *= 0.85;
 	}
 
 
