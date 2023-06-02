@@ -1,0 +1,48 @@
+{
+    "edges": {
+        "3HS": {
+            "data": {
+            },
+            "from": "qlC",
+            "to": "Ovp"
+        },
+        "8ZU": {
+            "data": {
+            },
+            "from": "Ovp",
+            "to": "qlC"
+        },
+        "NVg": {
+            "data": {
+            },
+            "from": "qlC",
+            "to": "QOc"
+        },
+        "giI": {
+            "data": {
+            },
+            "from": "Ovp",
+            "to": "QOc"
+        },
+        "wd1": {
+            "data": {
+            },
+            "from": "QOc",
+            "to": "PLw"
+        }
+    },
+    "nodes": {
+        "Ovp": {
+            "label": "Node C"
+        },
+        "PLw": {
+            "label": "Node D"
+        },
+        "QOc": {
+            "label": "Node B"
+        },
+        "qlC": {
+            "label": "Node A"
+        }
+    }
+}

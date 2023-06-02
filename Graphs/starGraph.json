@@ -1,0 +1,204 @@
+{
+    "edges": {
+        "4QQ": {
+            "data": {
+            },
+            "from": "WR9",
+            "to": "RwZ"
+        },
+        "9QD": {
+            "data": {
+            },
+            "from": "HIy",
+            "to": "EEJ"
+        },
+        "9pS": {
+            "data": {
+            },
+            "from": "mls",
+            "to": "WR9"
+        },
+        "AAX": {
+            "data": {
+            },
+            "from": "RwZ",
+            "to": "E8v"
+        },
+        "E2I": {
+            "data": {
+            },
+            "from": "E8v",
+            "to": "EEJ"
+        },
+        "FyY": {
+            "data": {
+            },
+            "from": "RwZ",
+            "to": "WR9"
+        },
+        "LHC": {
+            "data": {
+            },
+            "from": "EEJ",
+            "to": "WR9"
+        },
+        "M18": {
+            "data": {
+            },
+            "from": "mls",
+            "to": "E8v"
+        },
+        "NCA": {
+            "data": {
+            },
+            "from": "RwZ",
+            "to": "HIy"
+        },
+        "NcG": {
+            "data": {
+            },
+            "from": "mls",
+            "to": "RwZ"
+        },
+        "Puw": {
+            "data": {
+            },
+            "from": "E8v",
+            "to": "RwZ"
+        },
+        "QEZ": {
+            "data": {
+            },
+            "from": "WR9",
+            "to": "HIy"
+        },
+        "V6l": {
+            "data": {
+            },
+            "from": "HIy",
+            "to": "E8v"
+        },
+        "XAL": {
+            "data": {
+            },
+            "from": "WR9",
+            "to": "E8v"
+        },
+        "ZJZ": {
+            "data": {
+            },
+            "from": "HIy",
+            "to": "RwZ"
+        },
+        "ZOT": {
+            "data": {
+            },
+            "from": "EEJ",
+            "to": "HIy"
+        },
+        "bVr": {
+            "data": {
+            },
+            "from": "HIy",
+            "to": "mls"
+        },
+        "dyb": {
+            "data": {
+            },
+            "from": "E8v",
+            "to": "WR9"
+        },
+        "hGm": {
+            "data": {
+            },
+            "from": "E8v",
+            "to": "mls"
+        },
+        "mqo": {
+            "data": {
+            },
+            "from": "E8v",
+            "to": "HIy"
+        },
+        "n1V": {
+            "data": {
+            },
+            "from": "HIy",
+            "to": "WR9"
+        },
+        "nK4": {
+            "data": {
+            },
+            "from": "RwZ",
+            "to": "EEJ"
+        },
+        "nOb": {
+            "data": {
+            },
+            "from": "mls",
+            "to": "HIy"
+        },
+        "sBb": {
+            "data": {
+            },
+            "from": "WR9",
+            "to": "EEJ"
+        },
+        "u4v": {
+            "data": {
+            },
+            "from": "WR9",
+            "to": "mls"
+        },
+        "ukj": {
+            "data": {
+            },
+            "from": "mls",
+            "to": "EEJ"
+        },
+        "uvh": {
+            "data": {
+            },
+            "from": "EEJ",
+            "to": "mls"
+        },
+        "vHT": {
+            "data": {
+            },
+            "from": "EEJ",
+            "to": "RwZ"
+        },
+        "vw7": {
+            "data": {
+            },
+            "from": "RwZ",
+            "to": "mls"
+        },
+        "zah": {
+            "data": {
+            },
+            "from": "EEJ",
+            "to": "E8v"
+        }
+    },
+    "nodes": {
+        "E8v": {
+            "label": "New Node"
+        },
+        "EEJ": {
+            "label": "New Node"
+        },
+        "HIy": {
+            "label": "New Node"
+        },
+        "RwZ": {
+            "label": "New Node"
+        },
+        "WR9": {
+            "label": "New Node"
+        },
+        "mls": {
+            "label": "New Node"
+        }
+    }
+}
