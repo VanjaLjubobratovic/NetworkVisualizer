@@ -1,5 +1,6 @@
 #include "graphmodel.h"
 #include <cmath>
+#include <QQuickItem>
 
 GraphModel::GraphModel(QObject *parent)
 	: QObject{parent}
@@ -14,6 +15,7 @@ void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
 	m_graphView = gw;
+	QObject::connect(m_graphView, &qan::GraphView::clicked, this, &GraphModel::onDrawNewNode);
 }
 
 void GraphModel::removeSelected() {
@@ -188,14 +190,28 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-void GraphModel::drawNewNode(const QString label) {
+void GraphModel::readyToInsertNode(const QString label) {
+	m_addingNode = !m_addingNode;
+	qDebug() << "Adding node set to" << m_addingNode;
+}
+
+void GraphModel::onDrawNewNode(const QVariant pos) {
+	if(!m_addingNode)
+		return;
+
+	qDebug() << pos;
+	QPointF point(pos.toPoint());
+	point -= QPointF(NODE_DIMEN/2, NODE_DIMEN/2); //Node center is put where user clicks
+
 	QPointer<qan::Node> n = m_graphElement->insertNode();
-	n->setLabel(label);
-	n->getItem()->setRect({100, 100, NODE_DIMEN, NODE_DIMEN});
+	n->setLabel("New node");
+	n->getItem()->setRect({point.x(), point.y(), NODE_DIMEN, NODE_DIMEN});
 	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
 	m_nodeMap.insert(id, n);
+
+	m_addingNode = false;
 
 	qDebug() << "New node inserted:" << id;
 }
@@ -287,6 +303,10 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 //I know it's dumb
 void GraphModel::forceDirectedLayout() {
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
+}
+
+void GraphModel::toggleDrawing() {
+	m_addingNode = false;
 }
 
 QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){

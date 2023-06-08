@@ -30,9 +30,11 @@ class GraphModel : public QObject
 	Q_INVOKABLE void clearGraph();
 	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
 	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
-	Q_INVOKABLE void drawNewNode(const QString label = "New Node");
+	Q_INVOKABLE void readyToInsertNode(const QString label = "New Node");
 	Q_INVOKABLE void removeSelected();
 	Q_INVOKABLE void forceDirectedLayout();
+	Q_INVOKABLE void toggleDrawing();
+
 
 
   signals:
@@ -41,6 +43,7 @@ class GraphModel : public QObject
 
   public slots:
 	void onDrawNewEdge(QPointer<qan::Edge> e);
+	void onDrawNewNode(QVariant pos);
 
   private:
 	QPointer<qan::Graph> m_graphElement;
@@ -48,6 +51,7 @@ class GraphModel : public QObject
 	QHash<QString, QPointer<qan::Node>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
 	bool m_loading = false;
+	bool m_addingNode = false;
 
 	QString getNodeId(QPointer<qan::Node> targetNode);
 	QString getEdgeId(QPointer<qan::Edge> targetEdge);

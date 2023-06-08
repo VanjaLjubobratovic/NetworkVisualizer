@@ -66,6 +66,7 @@ Window {
 						graphElement.connectorEnabled = false
 						addNodeBtn.enabled = false
 					}
+					graphModel.toggleDrawing()
 				}
 			}
 
@@ -123,11 +124,12 @@ Window {
 		Material.background: Material.BlueGrey
 
 		onClicked: {
-			graphModel.drawNewNode();
+			graphModel.readyToInsertNode();
 		}
 
 		z:2
 	}
+
 
 	Dialog {
 		id: quitDialog
