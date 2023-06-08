@@ -66,6 +66,16 @@ Window {
 						graphElement.connectorEnabled = false
 						addNodeBtn.enabled = false
 					}
+					graphModel.toggleDrawing()
+				}
+			}
+
+			MenuItem {
+				text: "Auto arrange nodes"
+				id: arrangeNodes
+
+				onTriggered: {
+					graphModel.forceDirectedLayout(graphModel.ge);
 				}
 			}
 		}
@@ -80,6 +90,7 @@ Window {
 
 	Qan.GraphView {
 		id: graphView
+		objectName: "graphView"
 		anchors.fill: parent
 		navigable: true
 		graph: Qan.Graph {
@@ -113,11 +124,12 @@ Window {
 		Material.background: Material.BlueGrey
 
 		onClicked: {
-			graphModel.drawNewNode();
+			graphModel.readyToInsertNode();
 		}
 
 		z:2
 	}
+
 
 	Dialog {
 		id: quitDialog

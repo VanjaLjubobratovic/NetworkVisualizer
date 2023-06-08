@@ -1,4 +1,6 @@
 #include "graphmodel.h"
+#include <cmath>
+#include <QQuickItem>
 
 GraphModel::GraphModel(QObject *parent)
 	: QObject{parent}
@@ -9,6 +11,11 @@ GraphModel::GraphModel(QObject *parent)
 void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+}
+
+void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
+	m_graphView = gw;
+	QObject::connect(m_graphView, &qan::GraphView::clicked, this, &GraphModel::onDrawNewNode);
 }
 
 void GraphModel::removeSelected() {
@@ -122,6 +129,9 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 	m_loading = false;
 
+	//Calculating layout
+	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
+
 	return true;
 
 }
@@ -180,14 +190,28 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-void GraphModel::drawNewNode(const QString label) {
+void GraphModel::readyToInsertNode(const QString label) {
+	m_addingNode = !m_addingNode;
+	qDebug() << "Adding node set to" << m_addingNode;
+}
+
+void GraphModel::onDrawNewNode(const QVariant pos) {
+	if(!m_addingNode)
+		return;
+
+	qDebug() << pos;
+	QPointF point(pos.toPoint());
+	point -= QPointF(NODE_DIMEN/2, NODE_DIMEN/2); //Node center is put where user clicks
+
 	QPointer<qan::Node> n = m_graphElement->insertNode();
-	n->setLabel(label);
-	n->getItem()->setRect({100, 100, NODE_DIMEN, NODE_DIMEN});
+	n->setLabel("New node");
+	n->getItem()->setRect({point.x(), point.y(), NODE_DIMEN, NODE_DIMEN});
 	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
 	m_nodeMap.insert(id, n);
+
+	m_addingNode = false;
 
 	qDebug() << "New node inserted:" << id;
 }
@@ -244,6 +268,8 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 	return false;
 }
 
+
+//TODO: There has to be a cleaner way of doing this
 void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 	n->getItem()->setResizable(false);
 
@@ -270,6 +296,118 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 	n->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
 	n->style()->setEffectColor("black");
 	n->style()->setEffectRadius(7);
+}
+
+//QML invokable function without arguments
+//I didn't want to change original function signature for this
+//I know it's dumb
+void GraphModel::forceDirectedLayout() {
+	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
+}
+
+void GraphModel::toggleDrawing() {
+	m_addingNode = false;
+}
+
+QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){
+	QPointF dxy(NODE_DIMEN / 2, NODE_DIMEN / 2);
+	QPointF corner = n->getItem()->position();
+	return corner - dxy;
+}
+
+void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList) {
+	int nodeCount = m_graphElement->getNodeCount();
+
+	//TODO: Define as constants
+	int k = 200; //ideal node spacing (center to center)
+	double temp = 100 * sqrt(nodeCount);
+	double max_force = 100.0;
+
+	for (int i = 0; i < 80; i++) {
+		std::vector<QPointF> displacement(nodeCount, QPointF(0,0));
+
+		//Calculating repulsive forces
+		for(int u = 0; u < nodeCount; u++) {
+			for(int v = 0; v < nodeCount; v++) {
+				if(u == v)
+					continue;
+
+				QPointF current = getNodeCenter(nodeList.at(u));
+				QPointF other = getNodeCenter(nodeList.at(v));
+				QPointF delta = current - other;
+
+				/*qDebug() << QString("Corner: (%1, %2) || Center: (%3, %4)")
+								 .arg(nodeList.at(u)->getItem()->position().x())
+								 .arg(nodeList.at(u)->getItem()->position().y())
+								 .arg(current.x())
+								 .arg(current.y());*/
+
+				double distance = sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+				distance = std::max(0.1, distance);
+
+				if(distance > 1000.0)
+					continue;
+
+				double force = k * k / distance;
+				//force = std::min(force, max_force);
+
+				QPointF displacementPoint(delta.x() / distance * force, delta.y() / distance * force);
+
+				displacement[u] += displacementPoint;
+			}
+		}
+
+		//Calculating attractive forces
+		for(const auto& edge : edgeList) {
+			qan::Node* src = edge->getSource();
+			qan::Node* dst = edge->getDestination();
+
+			double dx = src->getItem()->x() - dst->getItem()->x();
+			double dy = src->getItem()->y() - dst->getItem()->y();
+
+			double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
+
+			double force = (distance * distance) / k;
+			//force = std::min(force, max_force);
+
+			int srcInd = nodeList.indexOf(src);
+			int dstInd = nodeList.indexOf(dst);
+
+			QPointF disSrc(dx / distance * force, dy / distance * force);
+			QPointF disDst(dx / distance * force, dy / distance * force);
+
+			displacement[srcInd] -= disSrc;
+			displacement[dstInd] += disDst;
+		}
+
+		for (int j = 0; j < nodeCount; j++) {
+			double dispNorm = sqrt(displacement[j].x() * displacement[j].x() +
+									displacement[j].y() * displacement[j].y());
+
+			if(dispNorm < 1.0)
+				continue;
+
+			double cappedDispNorm = std::min(dispNorm, temp);
+
+			QPointF newPos = nodeList.at(j)->getItem()->position() + displacement[j] / dispNorm * cappedDispNorm;
+			nodeList.at(j)->getItem()->setPosition(newPos);
+		}
+
+		if(temp > 1.5)
+			temp *= 0.85;
+	}
+
+
+	//Center view to node coordinate average
+	double sumX = 0;
+	double sumY = 0;
+	for (auto& node : nodeList) {
+		sumX += node->getItem()->x();
+		sumY += node->getItem()->y();
+	}
+
+	QPointF viewCenter(sumX / nodeCount, sumY / nodeCount);
+	m_graphView->centerOnPosition(viewCenter);
 }
 
 
