@@ -61,10 +61,10 @@ Window {
 				onCheckedChanged: {
 					if(checked) {
 						graphElement.connectorEnabled = true
-						addNodeBtn.enabled = true
+						addNodeBtn.visible = true
 					} else {
 						graphElement.connectorEnabled = false
-						addNodeBtn.enabled = false
+						addNodeBtn.visible = false
 					}
 					graphModel.toggleDrawing()
 				}
@@ -107,7 +107,6 @@ Window {
 				graphModel.removeSelected()
 			}
 		}
-
 		z:1
 	}
 
@@ -119,7 +118,7 @@ Window {
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.bottomMargin: 10
-		enabled: false
+		visible: false
 
 		Material.background: Material.BlueGrey
 

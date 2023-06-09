@@ -18,6 +18,7 @@ void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
 	m_graphView = gw;
+	m_graphView->getGrid()->setVisible(false);
 	QObject::connect(m_graphView, &qan::GraphView::clicked, this, &GraphModel::onDrawNewNode);
 }
 
@@ -314,6 +315,8 @@ void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
 //QML invokable function without arguments
 //I didn't want to change original function signature for this
 //I know it's dumb
+
+//TODO: Ok, I don't remember why the hell this is the way it is. Fix it.
 void GraphModel::forceDirectedLayout() {
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
 }
@@ -356,7 +359,6 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 					continue;
 
 				double force = k * k / distance;
-				//force = std::min(force, max_force);
 
 				QPointF displacementPoint(delta.x() / distance * force, delta.y() / distance * force);
 
@@ -375,7 +377,6 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 			double distance = std::max(0.1, sqrt(dx*dx + dy*dy));
 
 			double force = (distance * distance) / k;
-			//force = std::min(force, max_force);
 
 			int srcInd = nodeList.indexOf(src);
 			int dstInd = nodeList.indexOf(dst);
