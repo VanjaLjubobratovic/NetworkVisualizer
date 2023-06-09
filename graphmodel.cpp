@@ -49,9 +49,6 @@ void GraphModel::removeSelected() {
 			m_edgeMap.remove(key);
 		}
 	}
-
-	//qDebug() << "EDGES" << m_edgeMap;
-	//qDebug() << "NODES" << m_nodeMap;
 }
 
 
@@ -213,9 +210,12 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	QPointF point(pos.toPoint());
 	point -= QPointF(NODE_DIMEN/2, NODE_DIMEN/2); //Node center is put where user clicks
 
+	//Transforming from window coordinate system to graph coordinate system
+	QPointF transformedPoint = m_graphView->mapToItem(m_graphView->getContainerItem(), point);
+
 	QPointer<qan::Node> n = m_graphElement->insertNode();
 	n->setLabel("New node");
-	n->getItem()->setRect({point.x(), point.y(), NODE_DIMEN, NODE_DIMEN});
+	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
 	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
@@ -348,12 +348,6 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 				QPointF current = getNodeCenter(nodeList.at(u));
 				QPointF other = getNodeCenter(nodeList.at(v));
 				QPointF delta = current - other;
-
-				/*qDebug() << QString("Corner: (%1, %2) || Center: (%3, %4)")
-								 .arg(nodeList.at(u)->getItem()->position().x())
-								 .arg(nodeList.at(u)->getItem()->position().y())
-								 .arg(current.x())
-								 .arg(current.y());*/
 
 				double distance = sqrt(delta.x() * delta.x() + delta.y() * delta.y());
 				distance = std::max(0.1, distance);
