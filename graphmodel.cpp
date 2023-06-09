@@ -11,6 +11,9 @@ GraphModel::GraphModel(QObject *parent)
 void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+
+	//TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
+	//QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
@@ -121,7 +124,14 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString from = edgeObj["from"].toString();
 
 			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
-			m_edgeMap[edgeKey] = e;
+			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+
+			//App treats all edges as undirected while QuickQanava doesn't
+			if(!edgeExists(e)) {
+				m_edgeMap[edgeKey] = e;
+			} else if (e) {
+				m_graphElement->removeEdge(e);
+			}
 		}
 	} else {
 		qDebug() << "JSON document contains no edges";
@@ -230,6 +240,8 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 		return;
 	}
 
+	e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+
 	QString id = generateUID(m_edgeMap);
 	m_edgeMap.insert(id, e);
 
@@ -260,8 +272,9 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 	for (auto it = m_edgeMap.begin(); it != m_edgeMap.end(); ++it) {
 		auto e = it.value().get();
 
-		//Possibly make edge comparator separate function
-		if((e->getSource() == targetEdge->getSource()) && (e->getDestination() == targetEdge->getDestination())) {
+		//This is because we pretend edges are bidirectional
+		if(((e->getSource() == targetEdge->getSource()) && (e->getDestination() == targetEdge->getDestination())) ||
+			((e->getSource() == targetEdge->getDestination()) && (e->getDestination() == targetEdge->getSource()))) {
 			return true;
 		}
 	}
