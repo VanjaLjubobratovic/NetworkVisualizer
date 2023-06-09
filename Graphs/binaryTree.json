@@ -1,0 +1,219 @@
+{
+    "edges": {
+        "2SO": {
+            "data": {
+            },
+            "from": "Bos",
+            "to": "Dwf"
+        },
+        "2fk": {
+            "data": {
+            },
+            "from": "qok",
+            "to": "Bos"
+        },
+        "2lZ": {
+            "data": {
+            },
+            "from": "6j8",
+            "to": "qG5"
+        },
+        "5Fn": {
+            "data": {
+            },
+            "from": "qG5",
+            "to": "tZG"
+        },
+        "5G9": {
+            "data": {
+            },
+            "from": "Bos",
+            "to": "gaj"
+        },
+        "65L": {
+            "data": {
+            },
+            "from": "SOZ",
+            "to": "tkH"
+        },
+        "EqJ": {
+            "data": {
+            },
+            "from": "gZD",
+            "to": "tZG"
+        },
+        "GQm": {
+            "data": {
+            },
+            "from": "qok",
+            "to": "lng"
+        },
+        "Gx2": {
+            "data": {
+            },
+            "from": "kEn",
+            "to": "lng"
+        },
+        "Gze": {
+            "data": {
+            },
+            "from": "uzj",
+            "to": "kEn"
+        },
+        "L5E": {
+            "data": {
+            },
+            "from": "kEn",
+            "to": "uzj"
+        },
+        "LMx": {
+            "data": {
+            },
+            "from": "tkH",
+            "to": "SOZ"
+        },
+        "P7V": {
+            "data": {
+            },
+            "from": "GJJ",
+            "to": "kEn"
+        },
+        "QgH": {
+            "data": {
+            },
+            "from": "gaj",
+            "to": "Bos"
+        },
+        "QyV": {
+            "data": {
+            },
+            "from": "tZG",
+            "to": "qG5"
+        },
+        "SZ5": {
+            "data": {
+            },
+            "from": "6j8",
+            "to": "lng"
+        },
+        "TOX": {
+            "data": {
+            },
+            "from": "lng",
+            "to": "kEn"
+        },
+        "Tfg": {
+            "data": {
+            },
+            "from": "lng",
+            "to": "qok"
+        },
+        "U18": {
+            "data": {
+            },
+            "from": "Dwf",
+            "to": "Bos"
+        },
+        "atz": {
+            "data": {
+            },
+            "from": "tkH",
+            "to": "gaj"
+        },
+        "c6P": {
+            "data": {
+            },
+            "from": "qG5",
+            "to": "6j8"
+        },
+        "h9H": {
+            "data": {
+            },
+            "from": "lng",
+            "to": "6j8"
+        },
+        "jql": {
+            "data": {
+            },
+            "from": "Tex",
+            "to": "6j8"
+        },
+        "klJ": {
+            "data": {
+            },
+            "from": "gaj",
+            "to": "tkH"
+        },
+        "nOu": {
+            "data": {
+            },
+            "from": "Bos",
+            "to": "qok"
+        },
+        "oj7": {
+            "data": {
+            },
+            "from": "6j8",
+            "to": "Tex"
+        },
+        "wox": {
+            "data": {
+            },
+            "from": "kEn",
+            "to": "GJJ"
+        },
+        "zT9": {
+            "data": {
+            },
+            "from": "tZG",
+            "to": "gZD"
+        }
+    },
+    "nodes": {
+        "6j8": {
+            "label": "New Node"
+        },
+        "Bos": {
+            "label": "New Node"
+        },
+        "Dwf": {
+            "label": "New Node"
+        },
+        "GJJ": {
+            "label": "New Node"
+        },
+        "SOZ": {
+            "label": "New Node"
+        },
+        "Tex": {
+            "label": "New Node"
+        },
+        "gZD": {
+            "label": "New Node"
+        },
+        "gaj": {
+            "label": "New Node"
+        },
+        "kEn": {
+            "label": "New Node"
+        },
+        "lng": {
+            "label": "New Node"
+        },
+        "qG5": {
+            "label": "New Node"
+        },
+        "qok": {
+            "label": "New Node"
+        },
+        "tZG": {
+            "label": "New Node"
+        },
+        "tkH": {
+            "label": "New Node"
+        },
+        "uzj": {
+            "label": "New Node"
+        }
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "edges": {
+        "6RH": {
+            "data": {
+            },
+            "from": "5FP",
+            "to": "azl"
+        },
+        "JNM": {
+            "data": {
+            },
+            "from": "iib",
+            "to": "F3B"
+        },
+        "UmH": {
+            "data": {
+            },
+            "from": "F3B",
+            "to": "5FP"
+        },
+        "agf": {
+            "data": {
+            },
+            "from": "azl",
+            "to": "iib"
+        }
+    },
+    "nodes": {
+        "5FP": {
+            "label": "New Node"
+        },
+        "F3B": {
+            "label": "New Node"
+        },
+        "azl": {
+            "label": "New Node"
+        },
+        "iib": {
+            "label": "New Node"
+        }
+    }
+}

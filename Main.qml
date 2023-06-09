@@ -61,11 +61,21 @@ Window {
 				onCheckedChanged: {
 					if(checked) {
 						graphElement.connectorEnabled = true
-						addNodeBtn.enabled = true
+						addNodeBtn.visible = true
 					} else {
 						graphElement.connectorEnabled = false
-						addNodeBtn.enabled = false
+						addNodeBtn.visible = false
 					}
+					graphModel.toggleDrawing()
+				}
+			}
+
+			MenuItem {
+				text: "Auto arrange nodes"
+				id: arrangeNodes
+
+				onTriggered: {
+					graphModel.forceDirectedLayout(graphModel.ge);
 				}
 			}
 		}
@@ -80,6 +90,7 @@ Window {
 
 	Qan.GraphView {
 		id: graphView
+		objectName: "graphView"
 		anchors.fill: parent
 		navigable: true
 		graph: Qan.Graph {
@@ -87,11 +98,15 @@ Window {
 			objectName: "graph"
 			anchors.fill: parent
 			connectorEnabled: false;
-			/*onConnectorEdgeInserted: {
-				graphModel.drawNewEdge(edge)
-			}*/
 		}
 
+		Keys.onPressed: (event) => {
+			if(event.key == Qt.Key_Delete) {
+				console.log("Delete pressed");
+				event.accepted = true
+				graphModel.removeSelected()
+			}
+		}
 		z:1
 	}
 
@@ -103,16 +118,17 @@ Window {
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.bottomMargin: 10
-		enabled: false
+		visible: false
 
 		Material.background: Material.BlueGrey
 
 		onClicked: {
-			graphModel.drawNewNode();
+			graphModel.readyToInsertNode();
 		}
 
 		z:2
 	}
+
 
 	Dialog {
 		id: quitDialog

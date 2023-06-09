@@ -1,0 +1,117 @@
+{
+    "edges": {
+        "4gc": {
+            "data": {
+            },
+            "from": "WXG",
+            "to": "67Z"
+        },
+        "6RH": {
+            "data": {
+            },
+            "from": "5FP",
+            "to": "azl"
+        },
+        "6iY": {
+            "data": {
+            },
+            "from": "Z5h",
+            "to": "F3B"
+        },
+        "J8r": {
+            "data": {
+            },
+            "from": "77P",
+            "to": "cZ4"
+        },
+        "JNM": {
+            "data": {
+            },
+            "from": "iib",
+            "to": "F3B"
+        },
+        "NKP": {
+            "data": {
+            },
+            "from": "bid",
+            "to": "F3B"
+        },
+        "Sfj": {
+            "data": {
+            },
+            "from": "XpM",
+            "to": "67Z"
+        },
+        "UmH": {
+            "data": {
+            },
+            "from": "F3B",
+            "to": "5FP"
+        },
+        "WaQ": {
+            "data": {
+            },
+            "from": "Z5h",
+            "to": "67Z"
+        },
+        "Zf8": {
+            "data": {
+            },
+            "from": "F3B",
+            "to": "cZ4"
+        },
+        "agf": {
+            "data": {
+            },
+            "from": "azl",
+            "to": "iib"
+        },
+        "tvx": {
+            "data": {
+            },
+            "from": "67Z",
+            "to": "F3B"
+        },
+        "uVy": {
+            "data": {
+            },
+            "from": "iib",
+            "to": "cZ4"
+        }
+    },
+    "nodes": {
+        "5FP": {
+            "label": "New Node"
+        },
+        "67Z": {
+            "label": "New Node"
+        },
+        "77P": {
+            "label": "New Node"
+        },
+        "F3B": {
+            "label": "New Node"
+        },
+        "WXG": {
+            "label": "New Node"
+        },
+        "XpM": {
+            "label": "New Node"
+        },
+        "Z5h": {
+            "label": "New Node"
+        },
+        "azl": {
+            "label": "New Node"
+        },
+        "bid": {
+            "label": "New Node"
+        },
+        "cZ4": {
+            "label": "New Node"
+        },
+        "iib": {
+            "label": "New Node"
+        }
+    }
+}

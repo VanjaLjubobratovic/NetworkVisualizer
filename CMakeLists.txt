@@ -13,7 +13,6 @@ qt_add_executable(appNetworkVisualizer
 	style.qrc
 	graphmodel.cpp
 	graphmodel.h
-	graphData.json
 )
 
 qt_add_qml_module(appNetworkVisualizer
