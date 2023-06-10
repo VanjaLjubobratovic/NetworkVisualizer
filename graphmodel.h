@@ -12,18 +12,20 @@
 #include <QPainter>
 #include <QPainterPath>
 
+#include "nodewrapper.h"
+
 class GraphModel : public QObject
 {
 	Q_OBJECT
   public:
 	explicit GraphModel(QObject *parent = nullptr);
 	QPointer<qan::Graph> getGraphElement();
-	QHash<QString, QPointer<qan::Node>>* getNodes();
+	QHash<QString, QPointer<NodeWrapper>>* getNodes();
 	QHash<QString, QPointer<qan::Edge>>* getEdges();
 
 	void setGraphElement(QPointer<qan::Graph>);
 	void setGraphView(QPointer<qan::GraphView>);
-	void setNodeMap(QHash<QString, QPointer<qan::Node>>*);
+	void setNodeMap(QHash<QString, QPointer<NodeWrapper>>*);
 	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
 
 
@@ -48,7 +50,7 @@ class GraphModel : public QObject
   private:
 	QPointer<qan::Graph> m_graphElement;
 	QPointer<qan::GraphView> m_graphView;
-	QHash<QString, QPointer<qan::Node>> m_nodeMap;
+	QHash<QString, QPointer<NodeWrapper>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
 	bool m_loading = false;
 	bool m_addingNode = false;

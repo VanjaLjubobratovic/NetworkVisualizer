@@ -23,8 +23,9 @@ class NodeWrapper : public QObject
 		FileType filetype;
 
 		NodeFile(QString filename, QString path, FileType ft);
+		bool operator==(const NodeFile* other) const;
 	};
-	explicit NodeWrapper(qan::Node* n);
+	explicit NodeWrapper(qan::Node* n, QString id);
 
 	void setNode(qan::Node* n);
 	void setId(QString id);
@@ -43,6 +44,8 @@ class NodeWrapper : public QObject
 	bool isNeighbour(qan::Node* n);
 	bool containsFile(NodeFile* f);
 	bool isMalicious();
+
+	bool operator==(const NodeWrapper& other) const;
 
   signals:
 

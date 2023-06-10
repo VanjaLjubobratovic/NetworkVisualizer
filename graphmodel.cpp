@@ -100,13 +100,13 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			double x = QRandomGenerator::global()->bounded(1280);
 			double y = QRandomGenerator::global()->bounded(720);
 
+			//TODO: NodeWrapper adjustments
 			auto n = m_graphElement->insertNode();
 			n->setLabel(nodeObj["label"].toString());
-			//TODO: Change node positioning
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
 			setNodeStyle(n);
 
-			m_nodeMap[nodeKey] = n;
+			m_nodeMap[nodeKey] = new NodeWrapper(n, nodeKey);
 		}
 	} else {
 		qDebug() << "JSON document contains no nodes";
@@ -121,7 +121,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
+			auto e = m_graphElement->insertEdge(m_nodeMap[from]->getNode(), m_nodeMap[to]->getNode());
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -165,9 +165,9 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	QJsonObject nodesObj;
 	for(const auto &nodeKey: m_nodeMap.keys()) {
 		QJsonObject nodeObj;
-		nodeObj.insert("label", m_nodeMap[nodeKey]->getLabel());
+		nodeObj.insert("label", m_nodeMap[nodeKey]->getNode()->getLabel());
 
-		//insert other attributes
+		//TODO: insert other attributes
 
 		nodesObj.insert(nodeKey, nodeObj);
 	}
@@ -220,7 +220,8 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
-	m_nodeMap.insert(id, n);
+
+	m_nodeMap.insert(id, new NodeWrapper(n, id));
 
 	m_addingNode = false;
 
@@ -253,7 +254,7 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 //Used when writing edges to JSON
 QString GraphModel::getNodeId(QPointer<qan::Node> targetNode) {
 	for (auto it = m_nodeMap.begin(); it != m_nodeMap.end(); ++it) {
-		if(it.value() == targetNode) {
+		if(it.value()->getNode() == targetNode) {
 			return it.key();
 		}
 	}

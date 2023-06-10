@@ -1,13 +1,17 @@
 #include "nodewrapper.h"
 
-NodeWrapper::NodeWrapper(qan::Node *n)
-	:m_node(n)
+NodeWrapper::NodeWrapper(qan::Node *n, QString id)
+	:m_node(n), m_id(id)
 {
 }
 
 NodeWrapper::NodeFile::NodeFile(QString filename, QString path, FileType ft)
 	:filename(filename), path(path), filetype(ft)
 {
+}
+
+bool NodeWrapper::NodeFile::operator==(const NodeFile* other) const {
+	return filename.compare(other->filename) && path.compare(other->path) && filetype == other->filetype;
 }
 
 void NodeWrapper::setNode(qan::Node *n){
@@ -77,4 +81,8 @@ bool NodeWrapper::containsFile(NodeFile *f){
 
 bool NodeWrapper::isMalicious(){
 	return m_malicious;
+}
+
+bool NodeWrapper::operator==(const NodeWrapper &other) const {
+	return m_id.compare(other.m_id);
 }
