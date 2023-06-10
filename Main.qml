@@ -9,6 +9,7 @@ import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
 
 Window {
+	id: mainWindow
 	width: 1280
 	height: 720
 	visible: true
@@ -141,17 +142,22 @@ Window {
 
 		currentIndex: infoTabBar.currentIndex
 
-		Item {
+		Rectangle {
 			id: networkItem
+			color: "#424242"
 		}
 
-		Item {
+		Rectangle {
 			id: nodesItem
+			color: "#424242"
 		}
 
-		Item {
+		Rectangle {
 			id: edgesItem
+			color: "#424242"
 		}
+
+		z: 3
 	}
 
 	RoundButton {
@@ -165,9 +171,7 @@ Window {
 		radius: 0
 
 		onClicked: {
-			infoStackView.visible = !infoStackView.visible
-			infoMinimizeBtn.visible = !infoMinimizeBtn.visible
-			infoTabBar.setCurrentIndex(-1)
+			minimizeWindow()
 		}
 
 		z:3
@@ -180,15 +184,16 @@ Window {
 		width: infoStackView.width
 		font.pixelSize: 12
 		visible: true
+		contentHeight: 30
 
-		Material.background: Material.Grey
+		Material.theme: Material.Dark
 
 		TabButton {
 			id: netTab
 			text: "Network"
 			onClicked: {
-				infoStackView.visible = true;
-				infoMinimizeBtn.visible = true;
+				infoStackView.currentIndex = 0
+				maximizeWindow()
 			}
 
 		}
@@ -197,8 +202,8 @@ Window {
 			id: nodeTab
 			text: "Nodes"
 			onClicked: {
-				infoStackView.visible = true;
-				infoMinimizeBtn.visible = true;
+				infoStackView.currentIndex = 1
+				maximizeWindow()
 			}
 		}
 
@@ -206,8 +211,8 @@ Window {
 			id: edgeTab
 			text: "Edges"
 			onClicked: {
-				infoStackView.visible = true;
-				infoMinimizeBtn.visible = true;
+				infoStackView.currentIndex = 2
+				maximizeWindow()
 			}
 		}
 
@@ -231,6 +236,67 @@ Window {
 		}
 
 		z:2
+	}
+
+	ParallelAnimation {
+		id: minimizeAnimation
+
+		SequentialAnimation {
+			PropertyAnimation {
+				target: infoStackView
+				property: "opacity"
+				to: 0
+				duration: 100
+			}
+
+			PropertyAnimation {
+				target: infoStackView
+				property: "height"
+				to: 0
+				duration: 300
+			}
+		}
+
+		SequentialAnimation {
+			PropertyAnimation {
+				target: infoMinimizeBtn
+				property: "opacity"
+				to: 0
+				duration: 300
+			}
+		}
+	}
+
+	SequentialAnimation {
+		id: maximizeAnimation
+		PropertyAnimation {
+			target: infoStackView
+			property: "opacity"
+			to: 100
+			duration: 100
+		}
+
+		PropertyAnimation {
+			target: infoStackView
+			property: "height"
+			to: mainWindow.height * 0.4
+			duration: 300
+		}
+
+		PropertyAnimation {
+			target: infoMinimizeBtn
+			property: "opacity"
+			to: 100
+			duration: 400
+		}
+	}
+
+	function minimizeWindow() {
+		minimizeAnimation.start()
+	}
+
+	function maximizeWindow() {
+		maximizeAnimation.start()
 	}
 
 	function openFile() {
