@@ -3,6 +3,7 @@ import QtQuick.Window 2.3
 import QtQuick.Controls 2.5
 import QtQuick.Controls.Material 2.3
 import QtQuick.Dialogs
+import QtQuick.Layouts
 
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
@@ -124,6 +125,90 @@ Window {
 
 		onClicked: {
 			graphModel.readyToInsertNode();
+		}
+
+		z:2
+	}
+
+
+	StackLayout {
+		id: infoStackView
+		anchors.bottom: infoTabBar.top
+		anchors.right: parent.right
+		width: parent.width * 0.3
+		height: parent.height * 0.4
+		visible: true
+
+		currentIndex: infoTabBar.currentIndex
+
+		Item {
+			id: networkItem
+		}
+
+		Item {
+			id: nodesItem
+		}
+
+		Item {
+			id: edgesItem
+		}
+	}
+
+	RoundButton {
+		id: infoMinimizeBtn
+		text: infoStackView.visible ? "V" : "Ʌ"
+		anchors.right: infoStackView.right
+		anchors.top: infoStackView.top
+		width: 30
+		height: 30
+		font.pixelSize: 10
+		radius: 0
+
+		onClicked: {
+			infoStackView.visible = !infoStackView.visible
+			infoMinimizeBtn.visible = !infoMinimizeBtn.visible
+			infoTabBar.setCurrentIndex(-1)
+		}
+
+		z:3
+	}
+
+	TabBar {
+		id: infoTabBar
+		anchors.bottom: parent.bottom
+		anchors.left: infoStackView.left
+		width: infoStackView.width
+		font.pixelSize: 12
+		visible: true
+
+		Material.background: Material.Grey
+
+		TabButton {
+			id: netTab
+			text: "Network"
+			onClicked: {
+				infoStackView.visible = true;
+				infoMinimizeBtn.visible = true;
+			}
+
+		}
+
+		TabButton {
+			id: nodeTab
+			text: "Nodes"
+			onClicked: {
+				infoStackView.visible = true;
+				infoMinimizeBtn.visible = true;
+			}
+		}
+
+		TabButton {
+			id: edgeTab
+			text: "Edges"
+			onClicked: {
+				infoStackView.visible = true;
+				infoMinimizeBtn.visible = true;
+			}
 		}
 
 		z:2
