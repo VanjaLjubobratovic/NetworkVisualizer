@@ -13,6 +13,8 @@ qt_add_executable(appNetworkVisualizer
 	style.qrc
 	graphmodel.cpp
 	graphmodel.h
+	nodewrapper.h
+	nodewrapper.cpp
 )
 
 qt_add_qml_module(appNetworkVisualizer
