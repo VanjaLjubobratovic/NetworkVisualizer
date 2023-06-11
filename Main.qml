@@ -100,6 +100,10 @@ Window {
 			objectName: "graph"
 			anchors.fill: parent
 			connectorEnabled: false;
+
+			onNodeInserted: {
+				tooltip.visible = false
+			}
 		}
 
 		Keys.onPressed: (event) => {
@@ -109,6 +113,7 @@ Window {
 				graphModel.removeSelected()
 			}
 		}
+
 		z:1
 	}
 
@@ -125,7 +130,10 @@ Window {
 		Material.background: Material.BlueGrey
 
 		onClicked: {
-			graphModel.readyToInsertNode();
+			graphModel.readyToInsertNode()
+			tooltip.visible = !tooltip.visible
+			tooltip.x = addNodeBtn.x
+			tooltip.y = addNodeBtn.y
 		}
 
 		z:2
@@ -238,6 +246,23 @@ Window {
 		z:2
 	}
 
+	ToolTip {
+		id: tooltip
+		//timeout: 1500
+		visible: false
+
+		background: Rectangle {
+			color: "#424242"
+			radius: 5
+		}
+
+		Label {
+			id: toolLabel
+			text: "Click anywhere to add node!"
+			font.pixelSize: 12
+		}
+	}
+
 	ParallelAnimation {
 		id: minimizeAnimation
 
@@ -290,6 +315,22 @@ Window {
 			duration: 400
 		}
 	}
+
+
+	MouseArea {
+		id: tooltipMouseArea
+		anchors.fill: parent
+		hoverEnabled: true
+
+		onPositionChanged: {
+			if (tooltip.visible) {
+				tooltip.x = mouseX + 5
+				tooltip.y = mouseY - 5
+			}
+		}
+	}
+
+
 
 	function minimizeWindow() {
 		minimizeAnimation.start()
