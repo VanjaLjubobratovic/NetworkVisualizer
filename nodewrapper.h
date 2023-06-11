@@ -60,6 +60,8 @@ class NodeWrapper : public QObject
 	QString m_id;
 	bool m_malicious = false;
 	bool m_active = true;
+
+	void setNodeStyle();
 };
 
 #endif // NODEWRAPPER_H

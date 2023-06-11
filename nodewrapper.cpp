@@ -3,6 +3,7 @@
 NodeWrapper::NodeWrapper(qan::Node *n, QString id)
 	:m_node(n), m_id(id)
 {
+	setNodeStyle();
 }
 
 QString NodeWrapper::getNodeInfo() {
@@ -24,6 +25,7 @@ bool NodeWrapper::NodeFile::operator==(const NodeFile* other) const {
 
 void NodeWrapper::setNode(qan::Node *n){
 	m_node = n;
+	setNodeStyle();
 }
 
 void NodeWrapper::setId(QString id){
@@ -49,10 +51,12 @@ void NodeWrapper::addFile(NodeFile file){
 
 void NodeWrapper::setMalicious(bool malicious){
 	m_malicious = malicious;
+	setNodeStyle();
 }
 
 void NodeWrapper::setActive(bool active){
 	m_active = active;
+	setNodeStyle();
 }
 
 QPointer<qan::Node> NodeWrapper::getNode(){
@@ -101,4 +105,32 @@ bool NodeWrapper::isActive(){
 
 bool NodeWrapper::operator==(const NodeWrapper &other) const {
 	return m_id.compare(other.m_id);
+}
+
+void NodeWrapper::setNodeStyle() {
+	QColor base, back, border;
+	QList<double> saturation, brightness; //<base, back, border>
+	if(m_malicious) {
+		base = QColor("#fc3636").toHsv();
+		back = QColor("#fac5c5").toHsv();
+		border = QColor("darkred").toHsv();
+	} else {
+		base = QColor("#368bfc").toHsv();
+		back = QColor("#c5dbfa").toHsv();
+		border = QColor("darkblue").toHsv();
+	}
+
+	//Making node a bit greyed out if inactive
+	if(!m_active) {
+		saturation = {base.saturation() * 0.6, back.saturation() * 0.6, border.saturation() * 0.6};
+		brightness = {base.value() * 0.6, base.value() * 0.6, border.value() * 0.6};
+
+		base.setHsv(base.hue(), saturation[0], brightness[0]);
+		back.setHsv(back.hue(), saturation[1], brightness[1]);
+		border.setHsv(border.hue(), saturation[2], brightness[2]);
+	}
+
+	m_node->style()->setBackColor(back);
+	m_node->style()->setBaseColor(base);
+	m_node->style()->setBorderColor(border);
 }
