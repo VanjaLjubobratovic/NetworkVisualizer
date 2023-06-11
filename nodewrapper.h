@@ -1,6 +1,9 @@
 #ifndef NODEWRAPPER_H
 #define NODEWRAPPER_H
 
+#define NODE_DIMEN 80
+#define NODE_RADIUS (NODE_DIMEN / 2)
+
 #include <QObject>
 #include <QDebug>
 #include <QuickQanava>
@@ -62,6 +65,7 @@ class NodeWrapper : public QObject
 	bool m_active = true;
 
 	void setNodeStyle();
+	void setNodeShape();
 };
 
 #endif // NODEWRAPPER_H

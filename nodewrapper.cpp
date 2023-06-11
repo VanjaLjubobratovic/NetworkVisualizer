@@ -1,8 +1,11 @@
 #include "nodewrapper.h"
+#include <QPainter>
+#include <QPainterPath>
 
 NodeWrapper::NodeWrapper(qan::Node *n, QString id)
 	:m_node(n), m_id(id)
 {
+	setNodeShape();
 	setNodeStyle();
 }
 
@@ -25,6 +28,7 @@ bool NodeWrapper::NodeFile::operator==(const NodeFile* other) const {
 
 void NodeWrapper::setNode(qan::Node *n){
 	m_node = n;
+	setNodeShape();
 	setNodeStyle();
 }
 
@@ -107,6 +111,8 @@ bool NodeWrapper::operator==(const NodeWrapper &other) const {
 	return m_id.compare(other.m_id);
 }
 
+
+
 void NodeWrapper::setNodeStyle() {
 	QColor base, back, border;
 	QList<double> saturation, brightness; //<base, back, border>
@@ -133,4 +139,28 @@ void NodeWrapper::setNodeStyle() {
 	m_node->style()->setBackColor(back);
 	m_node->style()->setBaseColor(base);
 	m_node->style()->setBorderColor(border);
+}
+
+void NodeWrapper::setNodeShape() {
+	m_node->getItem()->setResizable(false);
+
+	/* Generates round bounding polygon so
+	 * there is never a gap between edges
+	 * and dest / src nodes
+	 */
+	QPainterPath path;
+	qreal shapeRadius = 100.;   // In percentage = 100% !
+	path.addRoundedRect(QRectF{ 0., 0., NODE_DIMEN, NODE_DIMEN}, shapeRadius, shapeRadius);
+	QPolygonF boundingShape =  path.toFillPolygon(QTransform{});
+	m_node->getItem()->setBoundingShape(boundingShape);
+
+	m_node->style()->setBackRadius(NODE_RADIUS);
+	m_node->style()->setBorderWidth(2);
+
+	m_node->style()->setFillType(qan::NodeStyle::FillType::FillGradient);
+	m_node->style()->setBackOpacity(70);
+
+	m_node->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
+	m_node->style()->setEffectColor("black");
+	m_node->style()->setEffectRadius(7);
 }

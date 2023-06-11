@@ -104,7 +104,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			auto n = m_graphElement->insertNode();
 			n->setLabel(nodeObj["label"].toString());
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
-			setNodeStyle(n);
 
 			m_nodeMap[nodeKey] = new NodeWrapper(n, nodeKey);
 		}
@@ -217,7 +216,6 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	QPointer<qan::Node> n = m_graphElement->insertNode();
 	n->setLabel("New node");
 	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
-	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
 
@@ -281,36 +279,6 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 		}
 	}
 	return false;
-}
-
-
-//TODO: There has to be a cleaner way of doing this
-void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
-	n->getItem()->setResizable(false);
-
-	/* Generates round bounding polygon so
-	 * there is never a gap between edges
-	 * and dest / src nodes
-	 */
-	QPainterPath path;
-	qreal shapeRadius = 100.;   // In percentage = 100% !
-	path.addRoundedRect(QRectF{ 0., 0., NODE_DIMEN, NODE_DIMEN}, shapeRadius, shapeRadius);
-	QPolygonF boundingShape =  path.toFillPolygon(QTransform{});
-	n->getItem()->setBoundingShape(boundingShape);
-
-
-	n->style()->setBackRadius(NODE_RADIUS);
-	n->style()->setBorderColor("darkblue");
-	n->style()->setBorderWidth(2);
-
-	n->style()->setFillType(qan::NodeStyle::FillType::FillGradient);
-	n->style()->setBaseColor("#368bfc");
-	n->style()->setBackColor("#c5dbfa");
-	n->style()->setBackOpacity(70);
-
-	n->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
-	n->style()->setEffectColor("black");
-	n->style()->setEffectRadius(7);
 }
 
 //QML invokable function without arguments

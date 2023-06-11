@@ -60,8 +60,6 @@ class GraphModel : public QObject
 	QString getEdgeId(QPointer<qan::Edge> targetEdge);
 	bool edgeExists(QPointer<qan::Edge> targetEdge);
 
-	void setNodeStyle(QPointer<qan::Node> n);
-
 	void forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList);
 	QPointF getNodeCenter(QPointer<qan::Node>);
 
