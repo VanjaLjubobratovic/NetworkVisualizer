@@ -27,6 +27,8 @@ class NodeWrapper : public QObject
 	};
 	explicit NodeWrapper(qan::Node* n, QString id);
 
+	Q_INVOKABLE QString getNodeInfo();
+
 	void setNode(qan::Node* n);
 	void setId(QString id);
 	void addNeighbour(QPointer<NodeWrapper> n);
@@ -34,6 +36,7 @@ class NodeWrapper : public QObject
 	void clearNeighbours();
 	void addFile(NodeFile file);
 	void setMalicious(bool malicious);
+	void setActive(bool active);
 
 	QPointer<qan::Node> getNode();
 	QString getId();
@@ -44,6 +47,7 @@ class NodeWrapper : public QObject
 	bool isNeighbour(qan::Node* n);
 	bool containsFile(NodeFile* f);
 	bool isMalicious();
+	bool isActive();
 
 	bool operator==(const NodeWrapper& other) const;
 
@@ -55,6 +59,7 @@ class NodeWrapper : public QObject
 	QList<NodeFile> m_files;
 	QString m_id;
 	bool m_malicious = false;
+	bool m_active = true;
 };
 
 #endif // NODEWRAPPER_H

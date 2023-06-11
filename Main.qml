@@ -85,6 +85,13 @@ Window {
 		Menu {
 			title: "Help"
 			Material.theme: Material.Dark
+
+			MenuItem {
+				text: "info test"
+				onTriggered: {
+					nodeInfoWindow.visible = true;
+				}
+			}
 		}
 
 		z:2
@@ -103,6 +110,12 @@ Window {
 
 			onNodeInserted: {
 				tooltip.visible = false
+			}
+
+			onNodeClicked: (node) => {
+				var info = graphModel.getNodeInfo(node)
+				nodeInfoWindow.visible = true
+				infoLabel.text = info
 			}
 		}
 
@@ -261,6 +274,30 @@ Window {
 			text: "Click anywhere to add node!"
 			font.pixelSize: 12
 		}
+	}
+
+	Window {
+		id: nodeInfoWindow
+		title: "Node info"
+		width: 200
+		height: 200
+		visible: false
+		modality: Qt.NonModal
+		flags: Qt.Tool
+
+		Rectangle {
+			width: parent.width
+			height: parent.height
+			color: "lightgray"
+
+			Label {
+				id: infoLabel
+				text: "Popup Content"
+				anchors.centerIn: parent
+				font.bold: true
+			}
+		}
+
 	}
 
 	ParallelAnimation {

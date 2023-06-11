@@ -326,6 +326,15 @@ void GraphModel::toggleDrawing() {
 	m_addingNode = false;
 }
 
+QString GraphModel::getNodeInfo(qan::Node *n) {
+	for(const auto node : m_nodeMap.values()) {
+		if(n == node->getNode())
+			return node->getNodeInfo();
+	}
+
+	return QString("Error fetching node info");
+}
+
 QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){
 	QPointF dxy(NODE_DIMEN / 2, NODE_DIMEN / 2);
 	QPointF corner = n->getItem()->position();

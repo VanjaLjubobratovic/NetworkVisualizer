@@ -5,6 +5,14 @@ NodeWrapper::NodeWrapper(qan::Node *n, QString id)
 {
 }
 
+QString NodeWrapper::getNodeInfo() {
+	return QString("ID: %1\nNeighbours: %2\n# of files: %3\nActive: %4\nMalicious: %5\n")
+					.arg(m_id).arg(m_neighbours.length())
+					.arg(m_files.length())
+					.arg(m_active ? "True" : "False")
+					.arg(m_malicious ? "True" : "False");
+}
+
 NodeWrapper::NodeFile::NodeFile(QString filename, QString path, FileType ft)
 	:filename(filename), path(path), filetype(ft)
 {
@@ -41,6 +49,10 @@ void NodeWrapper::addFile(NodeFile file){
 
 void NodeWrapper::setMalicious(bool malicious){
 	m_malicious = malicious;
+}
+
+void NodeWrapper::setActive(bool active){
+	m_active = active;
 }
 
 QPointer<qan::Node> NodeWrapper::getNode(){
@@ -81,6 +93,10 @@ bool NodeWrapper::containsFile(NodeFile *f){
 
 bool NodeWrapper::isMalicious(){
 	return m_malicious;
+}
+
+bool NodeWrapper::isActive(){
+	return m_active;
 }
 
 bool NodeWrapper::operator==(const NodeWrapper &other) const {

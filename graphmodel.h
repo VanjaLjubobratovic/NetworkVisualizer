@@ -36,6 +36,7 @@ class GraphModel : public QObject
 	Q_INVOKABLE void removeSelected();
 	Q_INVOKABLE void forceDirectedLayout();
 	Q_INVOKABLE void toggleDrawing();
+	Q_INVOKABLE QString getNodeInfo(qan::Node * n);
 
 
 
