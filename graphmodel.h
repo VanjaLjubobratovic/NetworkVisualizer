@@ -32,7 +32,7 @@ class GraphModel : public QObject
 	Q_INVOKABLE void clearGraph();
 	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
 	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
-	Q_INVOKABLE void readyToInsertNode(const QString label = "New Node");
+	Q_INVOKABLE void readyToInsertNode(bool active, bool malicious);
 	Q_INVOKABLE void removeSelected();
 	Q_INVOKABLE void forceDirectedLayout();
 	Q_INVOKABLE void toggleDrawing();
@@ -66,6 +66,8 @@ class GraphModel : public QObject
 
 	template<typename T>
 	QString generateUID(const QHash<QString, QPointer<T>> &container);
+
+	bool newActive = true, newMalicious = false;
 };
 
 #endif // CUSTOMGRAPH_H

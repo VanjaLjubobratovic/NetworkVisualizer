@@ -64,9 +64,13 @@ Window {
 					if(checked) {
 						graphElement.connectorEnabled = true
 						addNodeBtn.visible = true
+						activeBtn.visible = true
+						maliciousBtn.visible = true
 					} else {
 						graphElement.connectorEnabled = false
 						addNodeBtn.visible = false
+						activeBtn.visible = false
+						maliciousBtn.visible = false
 					}
 					graphModel.toggleDrawing()
 				}
@@ -131,23 +135,68 @@ Window {
 		z:1
 	}
 
-	RoundButton {
-		id: addNodeBtn
-		text: "+"
-		width: 70
-		height: 70
+	RowLayout {
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
-		anchors.bottomMargin: 10
-		visible: false
+		spacing: 10
+		height: 100
+		width: 100
 
-		Material.background: Material.BlueGrey
 
-		onClicked: {
-			graphModel.readyToInsertNode()
-			tooltip.visible = !tooltip.visible
-			tooltip.x = addNodeBtn.x
-			tooltip.y = addNodeBtn.y
+		RoundButton {
+			id: addNodeBtn
+			text: "+"
+			width: 70
+			height: 70
+			visible: false
+
+			Material.background: Material.BlueGrey
+
+			onClicked: {
+				graphModel.readyToInsertNode(activeBtn.active, maliciousBtn.malicious)
+				tooltip.visible = !tooltip.visible
+				tooltip.x = addNodeBtn.x
+				tooltip.y = addNodeBtn.y
+			}
+
+			z:2
+		}
+
+		RoundButton {
+			id: activeBtn
+			property bool active: true
+
+			Material.background: active ? Material.Blue : Material.Grey
+			text: active ? "Active" : "Inactive"
+
+			width: 70
+			height: 70
+			visible: false
+
+			onClicked: {
+				active = !active
+				Material.background = active ? Material.Blue : Material.Grey
+				text = active ? "Active" : "Inactive"
+			}
+		}
+
+		RoundButton {
+			id: maliciousBtn
+			property bool malicious: false
+
+			Material.background: malicious ? Material.Red : Material.Blue
+			text: malicious ? "Malicious" : "Good"
+
+			width: 70
+			height: 70
+			visible: false
+
+			onClicked: {
+				malicious = !malicious
+				Material.background = malicious ? Material.Red : Material.Blue
+				text = malicious ? "Malicious" : "Good"
+			}
+
 		}
 
 		z:2

@@ -197,8 +197,10 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-void GraphModel::readyToInsertNode(const QString label) {
+void GraphModel::readyToInsertNode(bool active, bool malicious) {
 	m_addingNode = !m_addingNode;
+	newActive = active;
+	newMalicious = malicious;
 	qDebug() << "Adding node set to" << m_addingNode;
 }
 
@@ -219,7 +221,7 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 
 	QString id = generateUID(m_nodeMap);
 
-	m_nodeMap.insert(id, new NodeWrapper(n, id));
+	m_nodeMap.insert(id, new NodeWrapper(n, id, newMalicious, newActive));
 
 	m_addingNode = false;
 

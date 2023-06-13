@@ -29,6 +29,7 @@ class NodeWrapper : public QObject
 		bool operator==(const NodeFile* other) const;
 	};
 	explicit NodeWrapper(qan::Node* n, QString id);
+	explicit NodeWrapper(qan::Node* n, QString id, bool malicious, bool active);
 
 	Q_INVOKABLE QString getNodeInfo();
 

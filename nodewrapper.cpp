@@ -9,6 +9,13 @@ NodeWrapper::NodeWrapper(qan::Node *n, QString id)
 	setNodeStyle();
 }
 
+NodeWrapper::NodeWrapper(qan::Node *n, QString id, bool malicious, bool active)
+	:m_node(n), m_id(id), m_malicious(malicious), m_active(active)
+{
+	setNodeShape();
+	setNodeStyle();
+}
+
 QString NodeWrapper::getNodeInfo() {
 	return QString("ID: %1\nNeighbours: %2\n# of files: %3\nActive: %4\nMalicious: %5\n")
 					.arg(m_id).arg(m_neighbours.length())
