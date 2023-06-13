@@ -112,11 +112,12 @@ Window {
 				tooltip.visible = false
 			}
 
-			onNodeClicked: (node) => {
+			onNodeDoubleClicked: (node) => {
 				var info = graphModel.getNodeInfo(node)
 				nodeInfoWindow.visible = true
 				infoLabel.text = info
 			}
+
 		}
 
 		Keys.onPressed: (event) => {
@@ -164,18 +165,32 @@ Window {
 		currentIndex: infoTabBar.currentIndex
 
 		Rectangle {
-			id: networkItem
+			//id: networkItem
 			color: "#424242"
+			Label {
+				id: networkItemLabel
+				font.pixelSize: 16
+				padding: 8
+				color: "white"
+			}
 		}
 
 		Rectangle {
-			id: nodesItem
+			//id: nodesItem
 			color: "#424242"
+			Label {
+				id: nodesItemLabel
+				color: "white"
+			}
 		}
 
 		Rectangle {
-			id: edgesItem
+			//id: edgesItem
 			color: "#424242"
+			Label {
+				id: edgesItemLabel
+				color: "white"
+			}
 		}
 
 		z: 3
@@ -300,6 +315,17 @@ Window {
 
 	}
 
+	Timer {
+		id: infoTimer
+		interval: 2000
+		running: true
+		repeat: true
+
+		onTriggered: {
+			networkItemLabel.text = graphModel.getNetworkInfo()
+		}
+	}
+
 	ParallelAnimation {
 		id: minimizeAnimation
 
@@ -353,7 +379,7 @@ Window {
 		}
 	}
 
-
+	//Mouse area for getting cursor coordinates for tooltips
 	MouseArea {
 		id: tooltipMouseArea
 		anchors.fill: parent

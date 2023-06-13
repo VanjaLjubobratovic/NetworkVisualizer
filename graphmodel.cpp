@@ -303,6 +303,35 @@ QString GraphModel::getNodeInfo(qan::Node *n) {
 	return QString("Error fetching node info");
 }
 
+QString GraphModel::getNetworkInfo(){
+	double malicious = 0, active = 0;
+	double maliciousPer, activePer;
+
+	for(const auto n : m_nodeMap) {
+		if (n->isMalicious())
+			malicious++;
+		if(n->isActive())
+			active++;
+	}
+
+	activePer = active / std::max(1.0, double(m_nodeMap.count())) * 100.0;
+	maliciousPer = malicious / std::max(1.0, double(m_nodeMap.count())) * 100.0;
+
+	QString info = QString("<strong>Nodes:</strong> %1<br><strong>Active:</strong> %2 -> %3%<br>"
+							"<strong>Malicious:</strong> %4 -> %5%<br><strong>Edges:</strong> %6<br>")
+					   .arg(m_nodeMap.count())
+					   .arg(active)
+					   .arg(activePer)
+					   .arg(malicious)
+					   .arg(maliciousPer)
+					   .arg(m_edgeMap.count());
+
+	//qDebug() << "getNodeInfo:" << info;
+
+
+	return info;
+}
+
 QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){
 	QPointF dxy(NODE_DIMEN / 2, NODE_DIMEN / 2);
 	QPointF corner = n->getItem()->position();
