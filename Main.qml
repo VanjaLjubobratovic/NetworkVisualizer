@@ -317,12 +317,13 @@ Window {
 
 	Timer {
 		id: infoTimer
-		interval: 2000
+		interval: 500
 		running: true
 		repeat: true
 
 		onTriggered: {
 			networkItemLabel.text = graphModel.getNetworkInfo()
+			infoTimer.interval = 2000
 		}
 	}
 

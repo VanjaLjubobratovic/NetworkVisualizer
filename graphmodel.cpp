@@ -304,30 +304,39 @@ QString GraphModel::getNodeInfo(qan::Node *n) {
 }
 
 QString GraphModel::getNetworkInfo(){
-	double malicious = 0, active = 0;
-	double maliciousPer, activePer;
+	double malicious = 0, active = 0, maliciousActive = 0;
+	double maliciousPer, activePer, maliciousActivePer;
+	double data = 0;
 
 	for(const auto n : m_nodeMap) {
-		if (n->isMalicious())
+		if (n->isMalicious()) {
 			malicious++;
+			if(n->isActive()) {
+				maliciousActive++;
+			}
+		}
 		if(n->isActive())
 			active++;
 	}
 
 	activePer = active / std::max(1.0, double(m_nodeMap.count())) * 100.0;
 	maliciousPer = malicious / std::max(1.0, double(m_nodeMap.count())) * 100.0;
+	maliciousActivePer = maliciousActive / std::max(1.0, malicious) * 100.0;
 
-	QString info = QString("<strong>Nodes:</strong> %1<br><strong>Active:</strong> %2 -> %3%<br>"
-							"<strong>Malicious:</strong> %4 -> %5%<br><strong>Edges:</strong> %6<br>")
-					   .arg(m_nodeMap.count())
-					   .arg(active)
-					   .arg(activePer)
-					   .arg(malicious)
-					   .arg(maliciousPer)
-					   .arg(m_edgeMap.count());
+	QString info = "<strong>Nodes:</strong> " + QString::number(m_nodeMap.count()) + "<br>"
+				   + "<font color=\'#42b4ff'><strong>Active:</strong></font> " + QString::number(active) + " (" + QString::number(activePer) + "%)<br>"
+				   + "<font color=\'#a3a3a3'><strong>Inctive:</strong></font> " + QString::number(m_nodeMap.count() - active) + " (" + QString::number(100.0 - activePer) + "%)<br><br>"
+
+				   + "<font color=\'#FF0000'><strong>Malicious:</strong></font> " + QString::number(malicious) + " (" + QString::number(maliciousPer) + "%)<br>"
+				   + "<font color=\'#ff4242'><strong>Malicious active:</strong></font> " + QString::number(maliciousActive) + " (" + QString::number(maliciousActivePer) + "%)<br>"
+				   + "<font color=\'#ff8a8a'><strong>Malicious inactive:</strong></font> " + QString::number(malicious - maliciousActive) + " (" + QString::number(100 - maliciousActivePer) + "%)<br><br>"
+
+				   + "<font color=\'#42b4ff'><strong>Active non-malicious:</strong></font> " + QString::number((active - maliciousActive) / std::max(1.0, active) * 100.0) + "%<br><br>"
+
+				   + "<strong>Edges:</strong> " + QString::number(m_edgeMap.count()) + "<br>"
+				   + "<strong>Data:</strong> " + QString::number(data) + " GiB";
 
 	//qDebug() << "getNodeInfo:" << info;
-
 
 	return info;
 }
