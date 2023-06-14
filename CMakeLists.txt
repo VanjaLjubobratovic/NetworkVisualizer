@@ -10,15 +10,25 @@ qt_standard_project_setup()
 
 qt_add_executable(appNetworkVisualizer
     main.cpp
-	style.qrc
+	NetworkVisualizer.qrc
 	graphmodel.cpp
 	graphmodel.h
+	nodewrapper.h
+	nodewrapper.cpp
+	customnetworknode.h
+	customnetworknode.cpp
+	customnetworkgraph.h
+	customnetworkgraph.cpp
+	customnetworkedge.h
+	customnetworkedge.cpp
 )
 
 qt_add_qml_module(appNetworkVisualizer
     URI NetworkVisualizer
     VERSION 1.0
-    QML_FILES Main.qml
+	QML_FILES
+	    Main.qml
+		RoundNode.qml
 )
 
 set_target_properties(appNetworkVisualizer PROPERTIES

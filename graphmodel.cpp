@@ -8,12 +8,20 @@ GraphModel::GraphModel(QObject *parent)
 
 }
 
-void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
+/*void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 
 	//TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
 	//QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
+}*/
+
+void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
+	m_graphElement = graph;
+	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+
+ //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
+ //QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
@@ -100,13 +108,12 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			double x = QRandomGenerator::global()->bounded(1280);
 			double y = QRandomGenerator::global()->bounded(720);
 
-			auto n = m_graphElement->insertNode();
+			//TODO: NodeWrapper adjustments
+			auto n = m_graphElement->insertCustomNode();
 			n->setLabel(nodeObj["label"].toString());
-			//TODO: Change node positioning
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
-			setNodeStyle(n);
 
-			m_nodeMap[nodeKey] = n;
+			m_nodeMap[nodeKey] = new NodeWrapper(n, nodeKey);
 		}
 	} else {
 		qDebug() << "JSON document contains no nodes";
@@ -121,7 +128,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
+			auto e = m_graphElement->insertEdge(m_nodeMap[from]->getNode(), m_nodeMap[to]->getNode());
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -165,9 +172,9 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	QJsonObject nodesObj;
 	for(const auto &nodeKey: m_nodeMap.keys()) {
 		QJsonObject nodeObj;
-		nodeObj.insert("label", m_nodeMap[nodeKey]->getLabel());
+		nodeObj.insert("label", m_nodeMap[nodeKey]->getNode()->getLabel());
 
-		//insert other attributes
+		//TODO: insert other attributes
 
 		nodesObj.insert(nodeKey, nodeObj);
 	}
@@ -198,8 +205,10 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-void GraphModel::readyToInsertNode(const QString label) {
+void GraphModel::readyToInsertNode(bool active, bool malicious) {
 	m_addingNode = !m_addingNode;
+	newActive = active;
+	newMalicious = malicious;
 	qDebug() << "Adding node set to" << m_addingNode;
 }
 
@@ -214,13 +223,15 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	//Transforming from window coordinate system to graph coordinate system
 	QPointF transformedPoint = m_graphView->mapToItem(m_graphView->getContainerItem(), point);
 
-	QPointer<qan::Node> n = m_graphElement->insertNode();
+	//QPointer<qan::Node> n = m_graphElement->insertNode();
+	auto n = m_graphElement->insertCustomNode();
 	n->setLabel("New node");
 	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
-	setNodeStyle(n);
 
 	QString id = generateUID(m_nodeMap);
-	m_nodeMap.insert(id, n);
+
+	m_nodeMap.insert(id, new NodeWrapper(n, id, newMalicious, newActive));
+
 
 	m_addingNode = false;
 
@@ -253,7 +264,7 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 //Used when writing edges to JSON
 QString GraphModel::getNodeId(QPointer<qan::Node> targetNode) {
 	for (auto it = m_nodeMap.begin(); it != m_nodeMap.end(); ++it) {
-		if(it.value() == targetNode) {
+		if(it.value()->getNode() == targetNode) {
 			return it.key();
 		}
 	}
@@ -282,36 +293,6 @@ bool GraphModel::edgeExists(QPointer<qan::Edge> targetEdge) {
 	return false;
 }
 
-
-//TODO: There has to be a cleaner way of doing this
-void GraphModel::setNodeStyle(QPointer<qan::Node> n) {
-	n->getItem()->setResizable(false);
-
-	/* Generates round bounding polygon so
-	 * there is never a gap between edges
-	 * and dest / src nodes
-	 */
-	QPainterPath path;
-	qreal shapeRadius = 100.;   // In percentage = 100% !
-	path.addRoundedRect(QRectF{ 0., 0., NODE_DIMEN, NODE_DIMEN}, shapeRadius, shapeRadius);
-	QPolygonF boundingShape =  path.toFillPolygon(QTransform{});
-	n->getItem()->setBoundingShape(boundingShape);
-
-
-	n->style()->setBackRadius(NODE_RADIUS);
-	n->style()->setBorderColor("darkblue");
-	n->style()->setBorderWidth(2);
-
-	n->style()->setFillType(qan::NodeStyle::FillType::FillGradient);
-	n->style()->setBaseColor("#368bfc");
-	n->style()->setBackColor("#c5dbfa");
-	n->style()->setBackOpacity(70);
-
-	n->style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
-	n->style()->setEffectColor("black");
-	n->style()->setEffectRadius(7);
-}
-
 //QML invokable function without arguments
 //I didn't want to change original function signature for this
 //I know it's dumb
@@ -323,6 +304,53 @@ void GraphModel::forceDirectedLayout() {
 
 void GraphModel::toggleDrawing() {
 	m_addingNode = false;
+}
+
+QString GraphModel::getNodeInfo(qan::Node *n) {
+	for(const auto node : m_nodeMap.values()) {
+		if(n == node->getNode())
+			return node->getNodeInfo();
+	}
+
+	return QString("Error fetching node info");
+}
+
+QString GraphModel::getNetworkInfo(){
+	double malicious = 0, active = 0, maliciousActive = 0;
+	double maliciousPer, activePer, maliciousActivePer;
+	double data = 0;
+
+	for(const auto n : m_nodeMap) {
+		if (n->isMalicious()) {
+			malicious++;
+			if(n->isActive()) {
+				maliciousActive++;
+			}
+		}
+		if(n->isActive())
+			active++;
+	}
+
+	activePer = active / std::max(1.0, double(m_nodeMap.count())) * 100.0;
+	maliciousPer = malicious / std::max(1.0, double(m_nodeMap.count())) * 100.0;
+	maliciousActivePer = maliciousActive / std::max(1.0, malicious) * 100.0;
+
+	QString info = "<strong>Nodes:</strong> " + QString::number(m_nodeMap.count()) + "<br>"
+				   + "<font color=\'#42b4ff'><strong>Active:</strong></font> " + QString::number(active) + " (" + QString::number(activePer) + "%)<br>"
+				   + "<font color=\'#a3a3a3'><strong>Inctive:</strong></font> " + QString::number(m_nodeMap.count() - active) + " (" + QString::number(100.0 - activePer) + "%)<br><br>"
+
+				   + "<font color=\'#FF0000'><strong>Malicious:</strong></font> " + QString::number(malicious) + " (" + QString::number(maliciousPer) + "%)<br>"
+				   + "<font color=\'#ff4242'><strong>Malicious active:</strong></font> " + QString::number(maliciousActive) + " (" + QString::number(maliciousActivePer) + "%)<br>"
+				   + "<font color=\'#ff8a8a'><strong>Malicious inactive:</strong></font> " + QString::number(malicious - maliciousActive) + " (" + QString::number(100 - maliciousActivePer) + "%)<br><br>"
+
+				   + "<font color=\'#42b4ff'><strong>Active non-malicious:</strong></font> " + QString::number((active - maliciousActive) / std::max(1.0, active) * 100.0) + "%<br><br>"
+
+				   + "<strong>Edges:</strong> " + QString::number(m_edgeMap.count()) + "<br>"
+				   + "<strong>Data:</strong> " + QString::number(data) + " GiB";
+
+	//qDebug() << "getNodeInfo:" << info;
+
+	return info;
 }
 
 QPointF GraphModel::getNodeCenter(QPointer<qan::Node> n){
