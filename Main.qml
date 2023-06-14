@@ -64,14 +64,10 @@ Window {
 				onCheckedChanged: {
 					if(checked) {
 						graphElement.connectorEnabled = true
-						addNodeBtn.visible = true
-						activeBtn.visible = true
-						maliciousBtn.visible = true
+						drawingControls.visible = true
 					} else {
 						graphElement.connectorEnabled = false
-						addNodeBtn.visible = false
-						activeBtn.visible = false
-						maliciousBtn.visible = false
+						drawingControls.visible = false
 					}
 					graphModel.toggleDrawing()
 				}
@@ -82,7 +78,7 @@ Window {
 				id: arrangeNodes
 
 				onTriggered: {
-					graphModel.forceDirectedLayout(graphModel.ge);
+					graphModel.forceDirectedLayout();
 				}
 			}
 		}
@@ -101,40 +97,6 @@ Window {
 
 		z:2
 	}
-
-	/*Qan.GraphView {
-		id: graphView
-		objectName: "graphView"
-		anchors.fill: parent
-		navigable: true
-		graph: Qan.Graph {
-			id: graphElement
-			objectName: "graph"
-			anchors.fill: parent
-			connectorEnabled: false;
-
-			onNodeInserted: {
-				tooltip.visible = false
-			}
-
-			onNodeDoubleClicked: (node) => {
-				var info = graphModel.getNodeInfo(node)
-				nodeInfoWindow.visible = true
-				infoLabel.text = info
-			}
-
-		}
-
-		Keys.onPressed: (event) => {
-			if(event.key == Qt.Key_Delete) {
-				console.log("Delete pressed");
-				event.accepted = true
-				graphModel.removeSelected()
-			}
-		}
-
-		z:1
-	}*/
 
 	Qan.GraphView {
 		id: graphView
@@ -171,19 +133,19 @@ Window {
 	}
 
 	RowLayout {
+		id: drawingControls
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
 		spacing: 10
 		height: 100
-		width: 100
-
+		visible: false
 
 		RoundButton {
 			id: addNodeBtn
 			text: "+"
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 70
+			visible: true
 
 			Material.background: Material.BlueGrey
 
@@ -204,9 +166,9 @@ Window {
 			Material.background: active ? Material.Blue : Material.Grey
 			text: active ? "Active" : "Inactive"
 
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 150
+			visible: true
 
 			onClicked: {
 				active = !active
@@ -222,9 +184,9 @@ Window {
 			Material.background: malicious ? Material.Red : Material.Blue
 			text: malicious ? "Malicious" : "Good"
 
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 150
+			visible: true
 
 			onClicked: {
 				malicious = !malicious
