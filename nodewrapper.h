@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QDebug>
 #include <QuickQanava>
+#include "customnetworknode.h"
 
 class NodeWrapper : public QObject
 {
@@ -33,7 +34,7 @@ class NodeWrapper : public QObject
 
 	Q_INVOKABLE QString getNodeInfo();
 
-	void setNode(qan::Node* n);
+	void setNode(CustomNetworkNode* n);
 	void setId(QString id);
 	void addNeighbour(QPointer<NodeWrapper> n);
 	void removeNeighbour(QPointer<NodeWrapper> n);
@@ -42,13 +43,13 @@ class NodeWrapper : public QObject
 	void setMalicious(bool malicious);
 	void setActive(bool active);
 
-	QPointer<qan::Node> getNode();
+	QPointer<CustomNetworkNode> getNode();
 	QString getId();
 	QList<QPointer<NodeWrapper>> getNeighbours();
 	QList<NodeFile> getFiles();
 
 	bool isNeighbour(NodeWrapper* n);
-	bool isNeighbour(qan::Node* n);
+	bool isNeighbour(CustomNetworkNode* n);
 	bool containsFile(NodeFile* f);
 	bool isMalicious();
 	bool isActive();
@@ -58,7 +59,7 @@ class NodeWrapper : public QObject
   signals:
 
   private:
-	QPointer<qan::Node> m_node;
+	QPointer<CustomNetworkNode> m_node;
 	QList<QPointer<NodeWrapper>> m_neighbours;
 	QList<NodeFile> m_files;
 	QString m_id;

@@ -13,6 +13,9 @@
 #include <QPainterPath>
 
 #include "nodewrapper.h"
+#include "customnetworkedge.h"
+#include "customnetworkgraph.h"
+#include "customnetworknode.h"
 
 class GraphModel : public QObject
 {
@@ -23,7 +26,8 @@ class GraphModel : public QObject
 	QHash<QString, QPointer<NodeWrapper>>* getNodes();
 	QHash<QString, QPointer<qan::Edge>>* getEdges();
 
-	void setGraphElement(QPointer<qan::Graph>);
+	//void setGraphElement(QPointer<qan::Graph>);
+	void setGraphElement(QPointer<CustomNetworkGraph>);
 	void setGraphView(QPointer<qan::GraphView>);
 	void setNodeMap(QHash<QString, QPointer<NodeWrapper>>*);
 	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
@@ -50,7 +54,8 @@ class GraphModel : public QObject
 	void onDrawNewNode(QVariant pos);
 
   private:
-	QPointer<qan::Graph> m_graphElement;
+	//QPointer<qan::Graph> m_graphElement;
+	QPointer<CustomNetworkGraph> m_graphElement;
 	QPointer<qan::GraphView> m_graphView;
 	QHash<QString, QPointer<NodeWrapper>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;

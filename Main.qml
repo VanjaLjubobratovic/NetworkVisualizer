@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
+import CustomElems 1.0 as Custom
 
 Window {
 	id: mainWindow
@@ -101,12 +102,46 @@ Window {
 		z:2
 	}
 
-	Qan.GraphView {
+	/*Qan.GraphView {
 		id: graphView
 		objectName: "graphView"
 		anchors.fill: parent
 		navigable: true
 		graph: Qan.Graph {
+			id: graphElement
+			objectName: "graph"
+			anchors.fill: parent
+			connectorEnabled: false;
+
+			onNodeInserted: {
+				tooltip.visible = false
+			}
+
+			onNodeDoubleClicked: (node) => {
+				var info = graphModel.getNodeInfo(node)
+				nodeInfoWindow.visible = true
+				infoLabel.text = info
+			}
+
+		}
+
+		Keys.onPressed: (event) => {
+			if(event.key == Qt.Key_Delete) {
+				console.log("Delete pressed");
+				event.accepted = true
+				graphModel.removeSelected()
+			}
+		}
+
+		z:1
+	}*/
+
+	Qan.GraphView {
+		id: graphView
+		objectName: "graphView"
+		anchors.fill: parent
+		navigable: true
+		graph: Custom.CustomNetworkGraph {
 			id: graphElement
 			objectName: "graph"
 			anchors.fill: parent

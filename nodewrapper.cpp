@@ -3,15 +3,19 @@
 #include <QPainterPath>
 
 NodeWrapper::NodeWrapper(qan::Node *n, QString id)
-	:m_node(n), m_id(id)
+	:m_id(id)
 {
+	m_node = dynamic_cast<CustomNetworkNode*>(n);
+
 	setNodeShape();
 	setNodeStyle();
 }
 
 NodeWrapper::NodeWrapper(qan::Node *n, QString id, bool malicious, bool active)
-	:m_node(n), m_id(id), m_malicious(malicious), m_active(active)
+	:m_id(id), m_malicious(malicious), m_active(active)
 {
+	m_node = dynamic_cast<CustomNetworkNode*>(n);
+
 	setNodeShape();
 	setNodeStyle();
 }
@@ -33,7 +37,7 @@ bool NodeWrapper::NodeFile::operator==(const NodeFile* other) const {
 	return filename.compare(other->filename) && path.compare(other->path) && filetype == other->filetype;
 }
 
-void NodeWrapper::setNode(qan::Node *n){
+void NodeWrapper::setNode(CustomNetworkNode *n){
 	m_node = n;
 	setNodeShape();
 	setNodeStyle();
@@ -70,7 +74,7 @@ void NodeWrapper::setActive(bool active){
 	setNodeStyle();
 }
 
-QPointer<qan::Node> NodeWrapper::getNode(){
+QPointer<CustomNetworkNode> NodeWrapper::getNode(){
 	return m_node;
 }
 
@@ -94,7 +98,7 @@ bool NodeWrapper::isNeighbour(NodeWrapper *n){
 	return false;
 }
 
-bool NodeWrapper::isNeighbour(qan::Node *n){
+bool NodeWrapper::isNeighbour(CustomNetworkNode *n){
 	for(const auto node : m_neighbours) {
 		if (node->getNode() == n)
 			return true;
@@ -143,9 +147,12 @@ void NodeWrapper::setNodeStyle() {
 		border.setHsv(border.hue(), saturation[2], brightness[2]);
 	}
 
-	m_node->style()->setBackColor(back);
-	m_node->style()->setBaseColor(base);
-	m_node->style()->setBorderColor(border);
+	qan::NodeStyle s = m_node->getItem()->getStyle();
+	s.setBackColor(back);
+	s.setBaseColor(base);
+	s.setBorderColor(border);
+
+	m_node->getItem()->setItemStyle(&s);
 }
 
 void NodeWrapper::setNodeShape() {

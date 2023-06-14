@@ -11,13 +11,26 @@
 #include <QRandomGenerator>
 
 #include "graphmodel.h"
-#include <QuickQanava/samples/style/custom.h>
+#include "customnetworkgraph.h"
 
 //Function for accessing Qan.Graph element in QML
-QPointer<qan::Graph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
+/*QPointer<qan::Graph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
 	QPointer<qan::Graph> graph;
 	for (const auto rootObject : engine->rootObjects()) {
 		graph = qobject_cast<qan::Graph*>(rootObject->findChild<QQuickItem *>(itemId));
+		if(graph) {
+			qDebug() << "Graph element found" << graph;
+			qDebug() << "Graph view" << graph->parentItem();
+			break;
+		}
+	}
+	return graph;
+}*/
+
+QPointer<CustomNetworkGraph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
+	QPointer<CustomNetworkGraph> graph;
+	for (const auto rootObject : engine->rootObjects()) {
+		graph = qobject_cast<CustomNetworkGraph*>(rootObject->findChild<QQuickItem *>(itemId));
 		if(graph) {
 			qDebug() << "Graph element found" << graph;
 			qDebug() << "Graph view" << graph->parentItem();
@@ -51,6 +64,8 @@ int main(int argc, char *argv[])
 	//qmlRegisterType<GraphModel>("GraphModel", 1, 0, "GraphModel");
 	QPointer<GraphModel> graphModel = new GraphModel();
 
+	qmlRegisterType<CustomNetworkGraph>("CustomElems", 1, 0, "CustomNetworkGraph");
+
 	QQmlApplicationEngine engine;
 	const QUrl url(u"qrc:/NetworkVisualizer/Main.qml"_qs);
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
@@ -64,8 +79,10 @@ int main(int argc, char *argv[])
 	engine.load(url);
 
 	//Make this a graphModel method
-	QPointer<qan::Graph> graph = findGraph(&engine, "graph");
+	//QPointer<qan::Graph> graph = findGraph(&engine, "graph");
+	QPointer<CustomNetworkGraph> graph = findGraph(&engine, "graph");
 	QPointer<qan::GraphView> graphView = findGraphView(&engine, "graphView");
+
 
 	if(!graph) {
 		qDebug() << "Graph element not found!";
