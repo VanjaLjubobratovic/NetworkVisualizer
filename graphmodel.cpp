@@ -8,12 +8,20 @@ GraphModel::GraphModel(QObject *parent)
 
 }
 
-void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
+/*void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 
 	//TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
 	//QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
+}*/
+
+void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
+	m_graphElement = graph;
+	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+
+ //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
+ //QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
@@ -101,7 +109,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			double y = QRandomGenerator::global()->bounded(720);
 
 			//TODO: NodeWrapper adjustments
-			auto n = m_graphElement->insertNode();
+			auto n = m_graphElement->insertCustomNode();
 			n->setLabel(nodeObj["label"].toString());
 			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
 
@@ -215,13 +223,15 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	//Transforming from window coordinate system to graph coordinate system
 	QPointF transformedPoint = m_graphView->mapToItem(m_graphView->getContainerItem(), point);
 
-	QPointer<qan::Node> n = m_graphElement->insertNode();
+	//QPointer<qan::Node> n = m_graphElement->insertNode();
+	auto n = m_graphElement->insertCustomNode();
 	n->setLabel("New node");
 	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
 
 	QString id = generateUID(m_nodeMap);
 
 	m_nodeMap.insert(id, new NodeWrapper(n, id, newMalicious, newActive));
+
 
 	m_addingNode = false;
 
