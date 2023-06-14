@@ -8,6 +8,7 @@ import QtQuick.Layouts
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
 import CustomElems 1.0 as Custom
+import "qrc:/" as Custom
 
 Window {
 	id: mainWindow
@@ -224,10 +225,33 @@ Window {
 		Rectangle {
 			//id: nodesItem
 			color: "#424242"
-			Label {
-				id: nodesItemLabel
-				color: "white"
-			}
+			Frame {
+				anchors.fill: parent
+				leftPadding: 15; rightPadding: 15
+				topPadding: 5;  bottomPadding: 5
+				anchors.top: parent.top
+				anchors.right: parent.right
+				visible: true
+				padding: 0
+				//Pane { anchors.fill: parent; anchors.margins: 1; opacity: 0.7 }
+				ColumnLayout {
+					anchors.fill: parent
+					anchors.margins: 10
+					/*Label {
+						Layout.margins: 3
+						text: "Nodes:"
+						font.bold: true
+					}*/
+
+					NodeListView {
+						Layout.fillWidth: true
+						Layout.fillHeight: true
+						model: graphElement.nodes
+						graphView: graphView
+					}
+				}
+				z:3
+			} // Frame: nodesListView
 		}
 
 		Rectangle {
