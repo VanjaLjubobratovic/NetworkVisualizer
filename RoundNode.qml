@@ -50,13 +50,21 @@ Qan.NodeItem {
 		z: 1
 		anchors.fill: parent
 		radius: width / 2;
-		border.color: "black"; border.width: 2
-		color: roundNode.style.backColor
+		border.color: "black"
+		border.width: 2
+		color: roundNode.style.baseColor
 	}
+
 	property color styleBackColor: style.backColor
-	onStyleBackColorChanged: nodeColor = Qt.rgba( style.backColor.r, style.backColor.g, style.backColor.b, 0.2 )
+	property color styleBorderColor: style.borderColor
+	onStyleBackColorChanged: {
+		nodeColor = Qt.rgba( style.baseColor.r, style.baseColor.g, style.baseColor.b, 1)
+		backColor = Qt.rgba( style.backColor.r, style.backColor.g, style.backColor.b, 1)
+		borderColor = Qt.rgba( style.borderColor.r, style.borderColor.g, style.borderColor.b, 1)
+	}
 	property color nodeColor
-	property color backColor: Material.background
+	property color backColor
+	property color borderColor
 
 	Qan.LinearGradient {
 		anchors.fill: parent
@@ -78,7 +86,8 @@ Qan.NodeItem {
 		z: 3
 		anchors.fill: parent
 		radius: width / 2;
-		border.color: "black"; border.width: 2
+		border.color: borderColor
+		border.width: 2
 		color: Qt.rgba(0, 0, 0, 0)
 	}
 	Label {
@@ -90,8 +99,8 @@ Qan.NodeItem {
 		z: 0
 		source: background
 		anchors.fill: parent
-		color: Material.theme === Material.Light ? Qt.lighter( Material.foreground ) : Qt.darker( Material.foreground )
-		radius: 12;     samples: 15
+		color: "black"
+		radius: 7;     samples: 15
 		spread: 0.25;   transparentBorder: true
 	}
 }

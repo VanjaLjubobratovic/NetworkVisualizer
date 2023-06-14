@@ -147,19 +147,12 @@ void NodeWrapper::setNodeStyle() {
 		border.setHsv(border.hue(), saturation[2], brightness[2]);
 	}
 
-	//m_node->getItem()->getStyle();
 	qan::NodeStyle s = m_node->getItem()->getStyle();
 	s.setBackColor(back);
 	s.setBaseColor(base);
 	s.setBorderColor(border);
 
 	m_node->getItem()->setItemStyle(&s);
-
-	/*m_node->style()->setBackColor(back);
-	m_node->style()->setBaseColor(base);
-	m_node->style()->setBorderColor(border);*/
-
-
 }
 
 void NodeWrapper::setNodeShape() {
