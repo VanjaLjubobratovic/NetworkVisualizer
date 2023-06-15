@@ -44,7 +44,7 @@ class CustomNetworkNode : public qan::Node
 	void addNeighbour(QPointer<CustomNetworkNode> n);
 	void removeNeighbour(QPointer<CustomNetworkNode> n);
 	void clearNeighbours();
-	void addFile(NodeFile* file);
+	void addFile(QPointer<NodeFile> file);
 	void setMalicious(bool malicious);
 	void setActive(bool active);
 
@@ -53,7 +53,7 @@ class CustomNetworkNode : public qan::Node
 	QList<QPointer<NodeFile>> getFiles();
 
 	bool isNeighbour(CustomNetworkNode* n);
-	bool containsFile(NodeFile* f);
+	bool containsFile(QPointer<NodeFile> f);
 	bool isMalicious();
 	bool isActive();
 
@@ -72,6 +72,7 @@ class CustomNetworkNode : public qan::Node
 	QString m_id;
 	bool m_malicious = false;
 	bool m_active = true;
+	bool m_shapeSet = false;
 
 	void setNodeStyle();
 	void setNodeShape();

@@ -2,9 +2,13 @@
 #include <QPainter>
 #include <QPainterPath>
 
-NodeFile::NodeFile(QString filename, QString path, FileType filetype = FileType::generic)
+NodeFile::NodeFile(QString filename, QString path, FileType filetype)
 	:filename(filename), path(path), filetype(filetype)
 {
+}
+
+bool NodeFile::operator==(const NodeFile *other) const {
+	return (QString::compare(other->path, path) && QString::compare(other->filename, filename));
 }
 
 CustomNetworkNode::CustomNetworkNode(QString id, bool malicious, bool active)
@@ -42,17 +46,22 @@ void CustomNetworkNode::clearNeighbours() {
 	m_neighbours.clear();
 }
 
-void CustomNetworkNode::addFile(NodeFile* file) {
-	if(!m_files.contains(file))
-			m_files.append(file);
+void CustomNetworkNode::addFile(QPointer<NodeFile> file) {
+	/*if(!m_files.contains(file))
+			m_files.append(file);*/
+	//TODO: Fix this
 }
 
 void CustomNetworkNode::setMalicious(bool malicious) {
 	m_malicious = malicious;
+	setNodeStyle();
+	setNodeShape();
 }
 
 void CustomNetworkNode::setActive(bool active) {
 	m_active = active;
+	setNodeStyle();
+	setNodeShape();
 }
 
 QString CustomNetworkNode::getID() {
@@ -71,8 +80,9 @@ bool CustomNetworkNode::isNeighbour(CustomNetworkNode *n) {
 	return m_neighbours.contains(n);
 }
 
-bool CustomNetworkNode::containsFile(NodeFile *f) {
-	return m_files.contains(f);
+bool CustomNetworkNode::containsFile(QPointer<NodeFile> f) {
+	//return m_files.contains(f);
+	//TODO: Fix this
 }
 
 bool CustomNetworkNode::isMalicious() {
@@ -140,6 +150,9 @@ void CustomNetworkNode::setNodeStyle() {
 }
 
 void CustomNetworkNode::setNodeShape() {
+	if(m_shapeSet)
+		return;
+
 	getItem()->setResizable(false);
 
 	/* Generates round bounding polygon so
@@ -161,4 +174,6 @@ void CustomNetworkNode::setNodeShape() {
 	style()->setEffectType(qan::NodeStyle::EffectType::EffectGlow);
 	style()->setEffectColor("black");
 	style()->setEffectRadius(7);
+
+	m_shapeSet = true;
 }

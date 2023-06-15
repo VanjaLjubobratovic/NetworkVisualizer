@@ -13,8 +13,6 @@ qt_add_executable(appNetworkVisualizer
 	NetworkVisualizer.qrc
 	graphmodel.cpp
 	graphmodel.h
-	nodewrapper.h
-	nodewrapper.cpp
 	customnetworknode.h
 	customnetworknode.cpp
 	customnetworkgraph.h
