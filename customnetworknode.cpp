@@ -2,13 +2,32 @@
 #include <QPainter>
 #include <QPainterPath>
 
-NodeFile::NodeFile(QString filename, QString path, FileType filetype)
-	:filename(filename), path(path), filetype(filetype)
+NodeFile::NodeFile(QString filename, QString path, FileType filetype, double size)
+	:filename(filename), path(path), filetype(filetype), size(size)
 {
 }
 
 bool NodeFile::operator==(const NodeFile *other) const {
 	return (QString::compare(other->path, path) && QString::compare(other->filename, filename));
+}
+
+QPointer<NodeFile> NodeFile::fileFromJSON(QJsonObject fileObj) {
+	QString filename = fileObj["filename"].toString();
+	QString path = fileObj["path"].toString();
+	FileType filetype = FileType::generic; //TODO: implement this
+	double size = fileObj["size"].toDouble();
+
+	return new NodeFile(filename, path, filetype, size);
+}
+
+QJsonObject NodeFile::fileToJSON(NodeFile *f) {
+	QJsonObject fileObj;
+	fileObj.insert("filename", f->filename);
+	fileObj.insert("path", f->path);
+	fileObj.insert("size", f->size);
+	fileObj.insert("filetype", f->filetype);
+
+	return fileObj;
 }
 
 CustomNetworkNode::CustomNetworkNode(QString id, bool malicious, bool active)
@@ -118,6 +137,45 @@ qan::NodeStyle* CustomNetworkNode::style(QObject* parent) noexcept
 	return customNetworkNode_style.get();
 }
 
+QPointer<CustomNetworkNode> CustomNetworkNode::nodeFromJSON(CustomNetworkGraph *g, QJsonObject nodeObj) {
+	QPointF center(QRandomGenerator::global()->bounded(1280), QRandomGenerator::global()->bounded(720));
+
+	auto n = dynamic_cast<CustomNetworkNode*>(g->insertCustomNode());
+	n->setLabel(nodeObj["label"].toString());
+	n->getItem()->setRect({center.x(), center.y(), NODE_DIMEN, NODE_DIMEN});
+	n->setId(nodeObj["id"].toString());
+
+	n->setMalicious(nodeObj["malicious"].toBool());
+	n->setActive(nodeObj["active"].toBool());
+
+	QJsonObject filesObj = nodeObj["files"].toObject();
+	for(const auto &fileKey : filesObj.keys()) {
+		QJsonObject fileObj = filesObj[fileKey].toObject();
+		n->addFile(NodeFile::fileFromJSON(fileObj));
+	}
+
+	return n;
+}
+
+QJsonObject CustomNetworkNode::nodeToJSON(CustomNetworkNode *n) {
+	QJsonObject nodeObj;
+	nodeObj.insert("label", n->getLabel());
+	nodeObj.insert("id", n->getID());
+	nodeObj.insert("malicious", n->isMalicious());
+	nodeObj.insert("active", n->isActive());
+
+
+	QJsonObject filesObj;
+	for(int i = 0; i < n->getFiles().count(); i++) {
+		QJsonObject fileObj = NodeFile::fileToJSON(n->getFiles().at(i));
+		filesObj.insert(QString::number(i), fileObj);
+	}
+
+	nodeObj.insert("files", filesObj);
+
+	return nodeObj;
+}
+
 void CustomNetworkNode::setNodeStyle() {
 	QColor base, back, border;
 	QList<double> saturation, brightness; //{base, back, border}
@@ -157,7 +215,7 @@ void CustomNetworkNode::setNodeShape() {
 
 	/* Generates round bounding polygon so
 	 * there is never a gap between edges
-	 * and dest / src nodes
+	 * and nodes
 	 */
 	QPainterPath path;
 	qreal shapeRadius = 100.;   // In percentage = 100% !

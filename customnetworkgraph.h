@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QuickQanava>
-#include "customnetworknode.h"
+
 
 class CustomNetworkGraph : public qan::Graph
 {

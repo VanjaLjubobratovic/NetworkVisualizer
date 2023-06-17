@@ -105,17 +105,8 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 		for(const auto &nodeKey : nodesObj.keys()) {
 			QJsonObject nodeObj = nodesObj[nodeKey].toObject();
-			double x = QRandomGenerator::global()->bounded(1280);
-			double y = QRandomGenerator::global()->bounded(720);
 
-			auto n = dynamic_cast<CustomNetworkNode*>(m_graphElement->insertCustomNode());
-			n->setLabel(nodeObj["label"].toString());
-			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
-			n->setId(nodeKey);
-
-			//TODO: actually read this from file
-			n->setMalicious(false);
-			n->setActive(true);
+			auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
 
 			m_nodeMap[nodeKey] = n;
 		}
@@ -175,11 +166,7 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	//Writing nodes
 	QJsonObject nodesObj;
 	for(const auto &nodeKey: m_nodeMap.keys()) {
-		QJsonObject nodeObj;
-		nodeObj.insert("label", m_nodeMap[nodeKey]->getLabel());
-
-		//TODO: insert other attributes
-
+		QJsonObject nodeObj = CustomNetworkNode::nodeToJSON(m_nodeMap[nodeKey]);
 		nodesObj.insert(nodeKey, nodeObj);
 	}
 

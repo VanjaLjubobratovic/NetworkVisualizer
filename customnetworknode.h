@@ -10,6 +10,8 @@
 #include <QQmlComponent>
 #include <QuickQanava>
 
+#include "customnetworkgraph.h"
+
 enum FileType {
 	txt,
 	exe,
@@ -19,13 +21,18 @@ enum FileType {
 	generic
 };
 
-struct NodeFile {
+class NodeFile : public QObject{
+	Q_OBJECT
+  public:
 	QString filename;
 	QString path;
 	FileType filetype;
+	double size;
 
-	NodeFile(QString filename, QString path, FileType filetype);
+	NodeFile(QString filename, QString path, FileType filetype, double size);
 	bool operator==(const NodeFile* other) const;
+	static QPointer<NodeFile> fileFromJSON(QJsonObject fileObj);
+	static QJsonObject fileToJSON(NodeFile* f);
 };
 
 class CustomNetworkNode : public qan::Node
@@ -62,6 +69,8 @@ class CustomNetworkNode : public qan::Node
   public:
 	static  QQmlComponent*  delegate(QQmlEngine& engine) noexcept;
 	static qan::NodeStyle* style(QObject* parent = nullptr) noexcept;
+	static QPointer<CustomNetworkNode> nodeFromJSON(CustomNetworkGraph* g, QJsonObject nodeObj);
+	static QJsonObject nodeToJSON(CustomNetworkNode* n);
 
   signals:
 
