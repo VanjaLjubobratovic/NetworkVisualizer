@@ -63,6 +63,9 @@ class GraphModel : public QObject
   public slots:
 	void onDrawNewEdge(QPointer<qan::Edge> e);
 	void onDrawNewNode(QVariant pos);
+	void handleNewConnection();
+	void handleSocketData();
+	void handleInsertNodeCommand(const QJsonObject nodeObj);
 
   private:
 	QPointer<CustomNetworkGraph> m_graphElement;
@@ -83,6 +86,8 @@ class GraphModel : public QObject
 	QString generateUID(const QHash<QString, QPointer<T>> &container);
 
 	bool newActive = true, newMalicious = false;
+
+	QPointer<QTcpServer> tcpServer;
 };
 
 #endif // CUSTOMGRAPH_H

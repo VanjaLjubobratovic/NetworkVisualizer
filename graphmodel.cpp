@@ -2,15 +2,28 @@
 #include <cmath>
 #include <QQuickItem>
 
+#include <QTcpSocket>
+#include <QTcpServer>
+
+
 GraphModel::GraphModel(QObject *parent)
 	: QObject{parent}
 {
-
 }
 
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+
+	tcpServer = new QTcpServer(this);
+	QObject::connect(tcpServer, &QTcpServer::newConnection, this, &GraphModel::handleNewConnection);
+
+	if(!tcpServer->listen(QHostAddress::LocalHost, 1234)) {
+		qDebug() << "Failed to start server";
+		return;
+	}
+
+	qDebug() << "Server started, waiting for connections...";
 
  //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
  //QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
@@ -248,6 +261,38 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	m_addingNode = false;
 
 	qDebug() << "New node inserted:" << id;
+}
+
+void GraphModel::handleNewConnection() {
+	QTcpSocket* clientSocket = tcpServer->nextPendingConnection();
+	QObject::connect(clientSocket, &QTcpSocket::readyRead, this, &GraphModel::handleSocketData);
+
+	qDebug() << "New client connected.";
+
+	QString welcomeMsg = "Welcome to NetworkVisualizer server!";
+	clientSocket->write(welcomeMsg.toUtf8());
+}
+
+void GraphModel::handleSocketData() {
+	QTcpSocket* clientSocket = qobject_cast<QTcpSocket*>(sender());
+	QByteArray data = clientSocket->readAll();
+
+	QJsonDocument document = QJsonDocument::fromJson(data);
+	QString command = document.object().value("command").toString();
+	QJsonObject nodeObj = document.object();
+
+	if(command == "insertNode") {
+		handleInsertNodeCommand(nodeObj);
+	}
+
+	QString response = "Command " + command + " received and processed";
+	clientSocket->write(response.toUtf8());
+}
+
+void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj) {
+	auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
+	n->setId(GraphModel::generateUID(m_nodeMap));
+	m_nodeMap[n->getID()] = n;
 }
 
 //Slot for when a new edge is drawn via UI
