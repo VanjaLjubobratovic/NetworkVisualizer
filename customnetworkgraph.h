@@ -5,6 +5,7 @@
 #include <QQmlEngine>
 #include <QuickQanava>
 
+
 class CustomNetworkGraph : public qan::Graph
 {
 	Q_OBJECT

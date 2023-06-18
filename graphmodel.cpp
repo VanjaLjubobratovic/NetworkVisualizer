@@ -105,15 +105,10 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 		for(const auto &nodeKey : nodesObj.keys()) {
 			QJsonObject nodeObj = nodesObj[nodeKey].toObject();
-			double x = QRandomGenerator::global()->bounded(1280);
-			double y = QRandomGenerator::global()->bounded(720);
 
-			//TODO: NodeWrapper adjustments
-			auto n = m_graphElement->insertCustomNode();
-			n->setLabel(nodeObj["label"].toString());
-			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
+			auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
 
-			m_nodeMap[nodeKey] = new NodeWrapper(n, nodeKey);
+			m_nodeMap[nodeKey] = n;
 		}
 	} else {
 		qDebug() << "JSON document contains no nodes";
@@ -128,7 +123,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from]->getNode(), m_nodeMap[to]->getNode());
+			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -171,11 +166,7 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	//Writing nodes
 	QJsonObject nodesObj;
 	for(const auto &nodeKey: m_nodeMap.keys()) {
-		QJsonObject nodeObj;
-		nodeObj.insert("label", m_nodeMap[nodeKey]->getNode()->getLabel());
-
-		//TODO: insert other attributes
-
+		QJsonObject nodeObj = CustomNetworkNode::nodeToJSON(m_nodeMap[nodeKey]);
 		nodesObj.insert(nodeKey, nodeObj);
 	}
 
@@ -223,15 +214,17 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	//Transforming from window coordinate system to graph coordinate system
 	QPointF transformedPoint = m_graphView->mapToItem(m_graphView->getContainerItem(), point);
 
-	//QPointer<qan::Node> n = m_graphElement->insertNode();
-	auto n = m_graphElement->insertCustomNode();
-	n->setLabel("New node");
-	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
-
 	QString id = generateUID(m_nodeMap);
 
-	m_nodeMap.insert(id, new NodeWrapper(n, id, newMalicious, newActive));
+	//QPointer<qan::Node> n = m_graphElement->insertNode();
+	auto n = dynamic_cast<CustomNetworkNode*>(m_graphElement->insertCustomNode());
+	n->setLabel("New node");
+	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
+	n->setActive(newActive);
+	n->setMalicious(newMalicious);
+	n->setId(id);
 
+	m_nodeMap.insert(id, n);
 
 	m_addingNode = false;
 
@@ -264,7 +257,7 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 //Used when writing edges to JSON
 QString GraphModel::getNodeId(QPointer<qan::Node> targetNode) {
 	for (auto it = m_nodeMap.begin(); it != m_nodeMap.end(); ++it) {
-		if(it.value()->getNode() == targetNode) {
+		if(QPointer<qan::Node>(it.value()) == targetNode) {
 			return it.key();
 		}
 	}
@@ -308,7 +301,7 @@ void GraphModel::toggleDrawing() {
 
 QString GraphModel::getNodeInfo(qan::Node *n) {
 	for(const auto node : m_nodeMap.values()) {
-		if(n == node->getNode())
+		if(n == node)
 			return node->getNodeInfo();
 	}
 

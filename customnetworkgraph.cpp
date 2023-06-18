@@ -7,6 +7,7 @@ qan::Node*  CustomNetworkGraph::insertCustomNode()
 	return qan::Graph::insertNode<CustomNetworkNode>();
 }
 
+
 qan::Edge*  CustomNetworkGraph::insertCustomEdge(qan::Node* source, qan::Node* destination)
 {
 	const auto engine = qmlEngine(this);
