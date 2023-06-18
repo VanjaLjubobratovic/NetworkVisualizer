@@ -66,9 +66,8 @@ void CustomNetworkNode::clearNeighbours() {
 }
 
 void CustomNetworkNode::addFile(QPointer<NodeFile> file) {
-	/*if(!m_files.contains(file))
-			m_files.append(file);*/
-	//TODO: Fix this
+	if (!m_files.contains(file))
+			m_files.append(file);
 }
 
 void CustomNetworkNode::setMalicious(bool malicious) {
@@ -100,8 +99,7 @@ bool CustomNetworkNode::isNeighbour(CustomNetworkNode *n) {
 }
 
 bool CustomNetworkNode::containsFile(QPointer<NodeFile> f) {
-	//return m_files.contains(f);
-	//TODO: Fix this
+	return m_files.contains(f);
 }
 
 bool CustomNetworkNode::isMalicious() {
