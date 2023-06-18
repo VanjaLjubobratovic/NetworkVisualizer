@@ -4,10 +4,12 @@ import QtQuick.Controls 2.5
 import QtQuick.Controls.Material 2.3
 import QtQuick.Dialogs
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
 import CustomElems 1.0 as Custom
+import "qrc:/" as Custom
 
 Window {
 	id: mainWindow
@@ -64,14 +66,10 @@ Window {
 				onCheckedChanged: {
 					if(checked) {
 						graphElement.connectorEnabled = true
-						addNodeBtn.visible = true
-						activeBtn.visible = true
-						maliciousBtn.visible = true
+						drawingControls.visible = true
 					} else {
 						graphElement.connectorEnabled = false
-						addNodeBtn.visible = false
-						activeBtn.visible = false
-						maliciousBtn.visible = false
+						drawingControls.visible = false
 					}
 					graphModel.toggleDrawing()
 				}
@@ -82,7 +80,23 @@ Window {
 				id: arrangeNodes
 
 				onTriggered: {
-					graphModel.forceDirectedLayout(graphModel.ge);
+					graphModel.forceDirectedLayout();
+				}
+			}
+		}
+
+		Menu {
+			title: "View"
+			Material.theme: Material.Dark
+
+			MenuItem {
+				id: legendCheckbox
+				text: "Legend"
+				checkable: true
+				checked: false
+
+				onCheckedChanged: {
+					legendRectangle.visible = checked
 				}
 			}
 		}
@@ -102,40 +116,6 @@ Window {
 		z:2
 	}
 
-	/*Qan.GraphView {
-		id: graphView
-		objectName: "graphView"
-		anchors.fill: parent
-		navigable: true
-		graph: Qan.Graph {
-			id: graphElement
-			objectName: "graph"
-			anchors.fill: parent
-			connectorEnabled: false;
-
-			onNodeInserted: {
-				tooltip.visible = false
-			}
-
-			onNodeDoubleClicked: (node) => {
-				var info = graphModel.getNodeInfo(node)
-				nodeInfoWindow.visible = true
-				infoLabel.text = info
-			}
-
-		}
-
-		Keys.onPressed: (event) => {
-			if(event.key == Qt.Key_Delete) {
-				console.log("Delete pressed");
-				event.accepted = true
-				graphModel.removeSelected()
-			}
-		}
-
-		z:1
-	}*/
-
 	Qan.GraphView {
 		id: graphView
 		objectName: "graphView"
@@ -149,6 +129,7 @@ Window {
 
 			onNodeInserted: {
 				tooltip.visible = false
+				addNodeBtn.addingNode = false
 			}
 
 			onNodeDoubleClicked: (node) => {
@@ -171,27 +152,33 @@ Window {
 	}
 
 	RowLayout {
+		id: drawingControls
 		anchors.bottom: parent.bottom
 		anchors.horizontalCenter: parent.horizontalCenter
 		spacing: 10
 		height: 100
-		width: 100
-
+		visible: false
 
 		RoundButton {
 			id: addNodeBtn
+			property bool addingNode: false
 			text: "+"
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 70
+			visible: true
 
 			Material.background: Material.BlueGrey
 
 			onClicked: {
-				graphModel.readyToInsertNode(activeBtn.active, maliciousBtn.malicious)
+				addingNode = !addingNode
 				tooltip.visible = !tooltip.visible
 				tooltip.x = addNodeBtn.x
 				tooltip.y = addNodeBtn.y
+			}
+
+			onAddingNodeChanged: {
+				Material.background = addingNode ? Material.accent : Material.BlueGrey
+				graphModel.addingNode = addingNode
 			}
 
 			z:2
@@ -204,14 +191,15 @@ Window {
 			Material.background: active ? Material.Blue : Material.Grey
 			text: active ? "Active" : "Inactive"
 
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 150
+			visible: true
 
 			onClicked: {
 				active = !active
 				Material.background = active ? Material.Blue : Material.Grey
 				text = active ? "Active" : "Inactive"
+				graphModel.newActive = active
 			}
 		}
 
@@ -222,14 +210,15 @@ Window {
 			Material.background: malicious ? Material.Red : Material.Blue
 			text: malicious ? "Malicious" : "Good"
 
-			width: 70
-			height: 70
-			visible: false
+			Layout.preferredHeight: 70
+			Layout.preferredWidth: 150
+			visible: true
 
 			onClicked: {
 				malicious = !malicious
 				Material.background = malicious ? Material.Red : Material.Blue
 				text = malicious ? "Malicious" : "Good"
+				graphModel.newMalicious = malicious
 			}
 
 		}
@@ -249,7 +238,7 @@ Window {
 		currentIndex: infoTabBar.currentIndex
 
 		Rectangle {
-			//id: networkItem
+			id: networkItem
 			color: "#424242"
 			Label {
 				id: networkItemLabel
@@ -260,16 +249,26 @@ Window {
 		}
 
 		Rectangle {
-			//id: nodesItem
+			id: nodesItem
 			color: "#424242"
-			Label {
-				id: nodesItemLabel
-				color: "white"
+			ColumnLayout {
+				anchors.fill: parent
+				anchors.margins: 10
+				anchors.top: parent.top
+				anchors.right: parent.right
+
+				NodeListView {
+					Layout.fillWidth: true
+					Layout.fillHeight: true
+					model: graphElement.nodes
+					graphView: graphView
+				}
+				z:3
 			}
 		}
 
 		Rectangle {
-			//id: edgesItem
+			id: edgesItem
 			color: "#424242"
 			Label {
 				id: edgesItemLabel
@@ -278,6 +277,20 @@ Window {
 		}
 
 		z: 3
+	}
+
+	Rectangle {
+		id: legendRectangle
+		color: "#424242"
+		anchors.top: parent.top
+		anchors.right: parent.right
+		visible: false
+		width: 200
+		height: 250
+
+		ColorLegend {}
+
+		z:3
 	}
 
 	RoundButton {
@@ -472,8 +485,8 @@ Window {
 
 		onPositionChanged: {
 			if (tooltip.visible) {
-				tooltip.x = mouseX + 5
-				tooltip.y = mouseY - 5
+				tooltip.x = mouseX + 10
+				tooltip.y = mouseY
 			}
 		}
 	}

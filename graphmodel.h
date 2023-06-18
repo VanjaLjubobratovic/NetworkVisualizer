@@ -12,7 +12,6 @@
 #include <QPainter>
 #include <QPainterPath>
 
-#include "nodewrapper.h"
 #include "customnetworkedge.h"
 #include "customnetworkgraph.h"
 #include "customnetworknode.h"
@@ -20,23 +19,32 @@
 class GraphModel : public QObject
 {
 	Q_OBJECT
+	Q_PROPERTY(bool newActive READ isNewActive WRITE setNewActive NOTIFY newActiveChanged)
+	Q_PROPERTY(bool newMalicious READ isNewMalicious WRITE setNewMalicious NOTIFY newMaliciousChanged)
+	Q_PROPERTY(bool addingNode READ isAddingNode WRITE setAddingNode NOTIFY addingNodeChanged)
   public:
 	explicit GraphModel(QObject *parent = nullptr);
 	QPointer<qan::Graph> getGraphElement();
-	QHash<QString, QPointer<NodeWrapper>>* getNodes();
+	QHash<QString, QPointer<CustomNetworkNode>>* getNodes();
 	QHash<QString, QPointer<qan::Edge>>* getEdges();
 
 	//void setGraphElement(QPointer<qan::Graph>);
 	void setGraphElement(QPointer<CustomNetworkGraph>);
 	void setGraphView(QPointer<qan::GraphView>);
-	void setNodeMap(QHash<QString, QPointer<NodeWrapper>>*);
+	void setNodeMap(QHash<QString, QPointer<CustomNetworkNode>>*);
 	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
+
+	bool isNewActive() const;
+	bool isNewMalicious() const;
+	bool isAddingNode() const;
+	void setNewActive(bool active);
+	void setNewMalicious(bool malicious);
+	void setAddingNode(bool adding);
 
 
 	Q_INVOKABLE void clearGraph();
 	Q_INVOKABLE bool readFromFile(QUrl fileUrl);
 	Q_INVOKABLE bool saveToFile(QUrl fileUrl);
-	Q_INVOKABLE void readyToInsertNode(bool active, bool malicious);
 	Q_INVOKABLE void removeSelected();
 	Q_INVOKABLE void forceDirectedLayout();
 	Q_INVOKABLE void toggleDrawing();
@@ -48,16 +56,18 @@ class GraphModel : public QObject
   signals:
 	void nodesChanged();
 	void edgesChanged();
+	void newActiveChanged();
+	void newMaliciousChanged();
+	void addingNodeChanged();
 
   public slots:
 	void onDrawNewEdge(QPointer<qan::Edge> e);
 	void onDrawNewNode(QVariant pos);
 
   private:
-	//QPointer<qan::Graph> m_graphElement;
 	QPointer<CustomNetworkGraph> m_graphElement;
 	QPointer<qan::GraphView> m_graphView;
-	QHash<QString, QPointer<NodeWrapper>> m_nodeMap;
+	QHash<QString, QPointer<CustomNetworkNode>> m_nodeMap;
 	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
 	bool m_loading = false;
 	bool m_addingNode = false;

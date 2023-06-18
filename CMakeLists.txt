@@ -13,8 +13,6 @@ qt_add_executable(appNetworkVisualizer
 	NetworkVisualizer.qrc
 	graphmodel.cpp
 	graphmodel.h
-	nodewrapper.h
-	nodewrapper.cpp
 	customnetworknode.h
 	customnetworknode.cpp
 	customnetworkgraph.h
@@ -29,6 +27,8 @@ qt_add_qml_module(appNetworkVisualizer
 	QML_FILES
 	    Main.qml
 		RoundNode.qml
+		NodeListView.qml
+		ColorLegend.qml
 )
 
 set_target_properties(appNetworkVisualizer PROPERTIES

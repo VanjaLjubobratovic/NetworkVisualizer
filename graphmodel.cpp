@@ -8,14 +8,6 @@ GraphModel::GraphModel(QObject *parent)
 
 }
 
-/*void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
-	m_graphElement = graph;
-	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
-
-	//TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
-	//QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
-}*/
-
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
@@ -28,6 +20,40 @@ void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
 	m_graphView = gw;
 	m_graphView->getGrid()->setVisible(false);
 	QObject::connect(m_graphView, &qan::GraphView::clicked, this, &GraphModel::onDrawNewNode);
+}
+
+bool GraphModel::isNewActive() const {
+	return newActive;
+}
+
+bool GraphModel::isNewMalicious() const {
+	return newMalicious;
+}
+
+bool GraphModel::isAddingNode() const {
+	return m_addingNode;
+}
+
+void GraphModel::setNewActive(bool active) {
+	if(newActive == active)
+		return;
+
+	newActive = active;
+	emit newActiveChanged();
+}
+
+void GraphModel::setNewMalicious(bool malicious) {
+	if(newMalicious == malicious)
+		return;
+	newMalicious = malicious;
+	emit newMaliciousChanged();
+}
+
+void GraphModel::setAddingNode(bool adding) {
+	if(m_addingNode == adding)
+		return;
+	m_addingNode = adding;
+	emit addingNodeChanged();
 }
 
 void GraphModel::removeSelected() {
@@ -105,15 +131,10 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 
 		for(const auto &nodeKey : nodesObj.keys()) {
 			QJsonObject nodeObj = nodesObj[nodeKey].toObject();
-			double x = QRandomGenerator::global()->bounded(1280);
-			double y = QRandomGenerator::global()->bounded(720);
 
-			//TODO: NodeWrapper adjustments
-			auto n = m_graphElement->insertCustomNode();
-			n->setLabel(nodeObj["label"].toString());
-			n->getItem()->setRect({x, y, NODE_DIMEN, NODE_DIMEN});
+			auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
 
-			m_nodeMap[nodeKey] = new NodeWrapper(n, nodeKey);
+			m_nodeMap[nodeKey] = n;
 		}
 	} else {
 		qDebug() << "JSON document contains no nodes";
@@ -128,7 +149,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from]->getNode(), m_nodeMap[to]->getNode());
+			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -171,11 +192,7 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	//Writing nodes
 	QJsonObject nodesObj;
 	for(const auto &nodeKey: m_nodeMap.keys()) {
-		QJsonObject nodeObj;
-		nodeObj.insert("label", m_nodeMap[nodeKey]->getNode()->getLabel());
-
-		//TODO: insert other attributes
-
+		QJsonObject nodeObj = CustomNetworkNode::nodeToJSON(m_nodeMap[nodeKey]);
 		nodesObj.insert(nodeKey, nodeObj);
 	}
 
@@ -205,13 +222,6 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	return true;
 }
 
-void GraphModel::readyToInsertNode(bool active, bool malicious) {
-	m_addingNode = !m_addingNode;
-	newActive = active;
-	newMalicious = malicious;
-	qDebug() << "Adding node set to" << m_addingNode;
-}
-
 void GraphModel::onDrawNewNode(const QVariant pos) {
 	if(!m_addingNode)
 		return;
@@ -223,15 +233,17 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	//Transforming from window coordinate system to graph coordinate system
 	QPointF transformedPoint = m_graphView->mapToItem(m_graphView->getContainerItem(), point);
 
-	//QPointer<qan::Node> n = m_graphElement->insertNode();
-	auto n = m_graphElement->insertCustomNode();
-	n->setLabel("New node");
-	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
-
 	QString id = generateUID(m_nodeMap);
 
-	m_nodeMap.insert(id, new NodeWrapper(n, id, newMalicious, newActive));
+	//QPointer<qan::Node> n = m_graphElement->insertNode();
+	auto n = dynamic_cast<CustomNetworkNode*>(m_graphElement->insertCustomNode());
+	n->setLabel("New node");
+	n->getItem()->setRect({transformedPoint.x(), transformedPoint.y(), NODE_DIMEN, NODE_DIMEN});
+	n->setActive(newActive);
+	n->setMalicious(newMalicious);
+	n->setId(id);
 
+	m_nodeMap.insert(id, n);
 
 	m_addingNode = false;
 
@@ -264,7 +276,7 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 //Used when writing edges to JSON
 QString GraphModel::getNodeId(QPointer<qan::Node> targetNode) {
 	for (auto it = m_nodeMap.begin(); it != m_nodeMap.end(); ++it) {
-		if(it.value()->getNode() == targetNode) {
+		if(QPointer<qan::Node>(it.value()) == targetNode) {
 			return it.key();
 		}
 	}
@@ -308,7 +320,7 @@ void GraphModel::toggleDrawing() {
 
 QString GraphModel::getNodeInfo(qan::Node *n) {
 	for(const auto node : m_nodeMap.values()) {
-		if(n == node->getNode())
+		if(n == node)
 			return node->getNodeInfo();
 	}
 
