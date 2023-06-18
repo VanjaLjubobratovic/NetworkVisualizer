@@ -28,6 +28,7 @@ qt_add_qml_module(appNetworkVisualizer
 	    Main.qml
 		RoundNode.qml
 		NodeListView.qml
+		ColorLegend.qml
 )
 
 set_target_properties(appNetworkVisualizer PROPERTIES

@@ -86,6 +86,22 @@ Window {
 		}
 
 		Menu {
+			title: "View"
+			Material.theme: Material.Dark
+
+			MenuItem {
+				id: legendCheckbox
+				text: "Legend"
+				checkable: true
+				checked: false
+
+				onCheckedChanged: {
+					legendRectangle.visible = checked
+				}
+			}
+		}
+
+		Menu {
 			title: "Help"
 			Material.theme: Material.Dark
 
@@ -222,7 +238,7 @@ Window {
 		currentIndex: infoTabBar.currentIndex
 
 		Rectangle {
-			//id: networkItem
+			id: networkItem
 			color: "#424242"
 			Label {
 				id: networkItemLabel
@@ -233,39 +249,26 @@ Window {
 		}
 
 		Rectangle {
-			//id: nodesItem
+			id: nodesItem
 			color: "#424242"
-			Frame {
+			ColumnLayout {
 				anchors.fill: parent
-				leftPadding: 15; rightPadding: 15
-				topPadding: 5;  bottomPadding: 5
+				anchors.margins: 10
 				anchors.top: parent.top
 				anchors.right: parent.right
-				visible: true
-				padding: 0
-				//Pane { anchors.fill: parent; anchors.margins: 1; opacity: 0.7 }
-				ColumnLayout {
-					anchors.fill: parent
-					anchors.margins: 10
-					/*Label {
-						Layout.margins: 3
-						text: "Nodes:"
-						font.bold: true
-					}*/
 
-					NodeListView {
-						Layout.fillWidth: true
-						Layout.fillHeight: true
-						model: graphElement.nodes
-						graphView: graphView
-					}
+				NodeListView {
+					Layout.fillWidth: true
+					Layout.fillHeight: true
+					model: graphElement.nodes
+					graphView: graphView
 				}
 				z:3
-			} // Frame: nodesListView
+			}
 		}
 
 		Rectangle {
-			//id: edgesItem
+			id: edgesItem
 			color: "#424242"
 			Label {
 				id: edgesItemLabel
@@ -274,6 +277,20 @@ Window {
 		}
 
 		z: 3
+	}
+
+	Rectangle {
+		id: legendRectangle
+		color: "#424242"
+		anchors.top: parent.top
+		anchors.right: parent.right
+		visible: false
+		width: 200
+		height: 250
+
+		ColorLegend {}
+
+		z:3
 	}
 
 	RoundButton {
