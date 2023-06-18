@@ -8,14 +8,6 @@ GraphModel::GraphModel(QObject *parent)
 
 }
 
-/*void GraphModel::setGraphElement(QPointer<qan::Graph> graph) {
-	m_graphElement = graph;
-	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
-
-	//TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
-	//QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
-}*/
-
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
 	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
@@ -28,6 +20,40 @@ void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
 	m_graphView = gw;
 	m_graphView->getGrid()->setVisible(false);
 	QObject::connect(m_graphView, &qan::GraphView::clicked, this, &GraphModel::onDrawNewNode);
+}
+
+bool GraphModel::isNewActive() const {
+	return newActive;
+}
+
+bool GraphModel::isNewMalicious() const {
+	return newMalicious;
+}
+
+bool GraphModel::isAddingNode() const {
+	return m_addingNode;
+}
+
+void GraphModel::setNewActive(bool active) {
+	if(newActive == active)
+		return;
+
+	newActive = active;
+	emit newActiveChanged();
+}
+
+void GraphModel::setNewMalicious(bool malicious) {
+	if(newMalicious == malicious)
+		return;
+	newMalicious = malicious;
+	emit newMaliciousChanged();
+}
+
+void GraphModel::setAddingNode(bool adding) {
+	if(m_addingNode == adding)
+		return;
+	m_addingNode = adding;
+	emit addingNodeChanged();
 }
 
 void GraphModel::removeSelected() {
@@ -194,13 +220,6 @@ bool GraphModel::saveToFile(QUrl fileUrl) {
 	stream << jsonDoc.toJson(QJsonDocument::Indented);
 
 	return true;
-}
-
-void GraphModel::readyToInsertNode(bool active, bool malicious) {
-	m_addingNode = !m_addingNode;
-	newActive = active;
-	newMalicious = malicious;
-	qDebug() << "Adding node set to" << m_addingNode;
 }
 
 void GraphModel::onDrawNewNode(const QVariant pos) {

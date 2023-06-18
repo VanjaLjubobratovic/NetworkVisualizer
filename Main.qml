@@ -4,6 +4,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Controls.Material 2.3
 import QtQuick.Dialogs
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 
 import QuickQanava 2.0 as Qan
 import "qrc:/QuickQanava" as Qan
@@ -112,6 +113,7 @@ Window {
 
 			onNodeInserted: {
 				tooltip.visible = false
+				addNodeBtn.addingNode = false
 			}
 
 			onNodeDoubleClicked: (node) => {
@@ -143,6 +145,7 @@ Window {
 
 		RoundButton {
 			id: addNodeBtn
+			property bool addingNode: false
 			text: "+"
 			Layout.preferredHeight: 70
 			Layout.preferredWidth: 70
@@ -151,10 +154,15 @@ Window {
 			Material.background: Material.BlueGrey
 
 			onClicked: {
-				graphModel.readyToInsertNode(activeBtn.active, maliciousBtn.malicious)
+				addingNode = !addingNode
 				tooltip.visible = !tooltip.visible
 				tooltip.x = addNodeBtn.x
 				tooltip.y = addNodeBtn.y
+			}
+
+			onAddingNodeChanged: {
+				Material.background = addingNode ? Material.accent : Material.BlueGrey
+				graphModel.addingNode = addingNode
 			}
 
 			z:2
@@ -175,6 +183,7 @@ Window {
 				active = !active
 				Material.background = active ? Material.Blue : Material.Grey
 				text = active ? "Active" : "Inactive"
+				graphModel.newActive = active
 			}
 		}
 
@@ -193,6 +202,7 @@ Window {
 				malicious = !malicious
 				Material.background = malicious ? Material.Red : Material.Blue
 				text = malicious ? "Malicious" : "Good"
+				graphModel.newMalicious = malicious
 			}
 
 		}
@@ -458,8 +468,8 @@ Window {
 
 		onPositionChanged: {
 			if (tooltip.visible) {
-				tooltip.x = mouseX + 5
-				tooltip.y = mouseY - 5
+				tooltip.x = mouseX + 10
+				tooltip.y = mouseY
 			}
 		}
 	}
