@@ -279,10 +279,11 @@ void GraphModel::handleSocketData() {
 
 	QJsonDocument document = QJsonDocument::fromJson(data);
 	QString command = document.object().value("command").toString();
-	QJsonObject nodeObj = document.object();
+	QJsonObject payload = document.object().value("payload").toObject();
 
 	if(command == "insertNode") {
-		handleInsertNodeCommand(nodeObj);
+		qDebug() << payload;
+		handleInsertNodeCommand(payload);
 	}
 
 	QString response = "Command " + command + " received and processed";
