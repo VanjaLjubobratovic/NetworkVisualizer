@@ -63,9 +63,18 @@ class GraphModel : public QObject
   public slots:
 	void onDrawNewEdge(QPointer<qan::Edge> e);
 	void onDrawNewNode(QVariant pos);
+
+	//TCP Handlers
 	void handleNewConnection();
 	void handleSocketData();
-	void handleInsertNodeCommand(const QJsonObject nodeObj);
+	void handleInsertNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket);
+	void handleRemoveNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket);
+	void handleInsertEdgeCommand(const QJsonObject edgeObj, const QTcpSocket* socket);
+	void handleRemoveEdgeCommand(const QJsonObject edgeObj, const QTcpSocket* socket);
+	void handleInsertFileCommand(const QJsonObject fileObj, const QTcpSocket* socket);
+	void handleRemoveFileCommand(const QJsonObject fileObj, const QTcpSocket* socket);
+	void handleSetActiveCommand(const QJsonObject payload, const QTcpSocket* socket);
+	void handleSetMaliciousCommand(const QJsonObject payload, const QTcpSocket* socket);
 
   private:
 	QPointer<CustomNetworkGraph> m_graphElement;

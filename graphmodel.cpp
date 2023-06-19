@@ -281,20 +281,83 @@ void GraphModel::handleSocketData() {
 	QString command = document.object().value("command").toString();
 	QJsonObject payload = document.object().value("payload").toObject();
 
+	qDebug() << command << payload;
+
 	if(command == "insertNode") {
-		qDebug() << payload;
-		handleInsertNodeCommand(payload);
+		handleInsertNodeCommand(payload, clientSocket);
+	} else if(command == "removeNode") {
+		handleRemoveNodeCommand(payload, clientSocket);
+	} else if (command == "insertEdge") {
+		handleInsertEdgeCommand(payload, clientSocket);
+	} else if (command == "removeEdge") {
+		handleRemoveEdgeCommand(payload, clientSocket);
+	} else if (command == "insertFile") {
+		handleInsertFileCommand(payload, clientSocket);
+	} else if (command == "removeFile") {
+		handleRemoveFileCommand(payload, clientSocket);
+	} else if (command == "setActive") {
+		handleSetActiveCommand(payload, clientSocket);
+	} else if (command == "setMalicious") {
+		handleSetMaliciousCommand(payload, clientSocket);
 	}
 
 	QString response = "Command " + command + " received and processed";
 	clientSocket->write(response.toUtf8());
 }
 
-void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj) {
+void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket) {
 	auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
 	n->setId(GraphModel::generateUID(m_nodeMap));
 	m_nodeMap[n->getID()] = n;
+
+	/*QJsonObject response;
+	response.insert("message", "Success");
+	response.insert("command", "insertNode");
+	response.insert("nodeId", n->getID());*/
+
+	//TODO: write a response
 }
+
+void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, const QTcpSocket *socket) {
+	QString id = nodeObj.value("nodeId").toString();
+	auto n = m_nodeMap[id];
+
+	if(!n) {
+		//TODO: write a response
+		return;
+	}
+
+	m_graphElement->removeNode(n);
+	m_nodeMap.remove(id);
+
+	//TODO: send response
+}
+
+void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, const QTcpSocket *socket) {
+	//TODO:
+}
+
+void GraphModel::handleRemoveEdgeCommand(const QJsonObject edgeObj, const QTcpSocket *socket) {
+	//TODO:
+}
+
+void GraphModel::handleInsertFileCommand(const QJsonObject fileObj, const QTcpSocket *socket) {
+	//TODO
+}
+
+void GraphModel::handleRemoveFileCommand(const QJsonObject fileObj, const QTcpSocket *socket) {
+	//TODO
+}
+
+void GraphModel::handleSetActiveCommand(const QJsonObject payload, const QTcpSocket *socket) {
+	//TODO
+}
+
+void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, const QTcpSocket *socket) {
+	//TODO
+}
+
+
 
 //Slot for when a new edge is drawn via UI
 void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
