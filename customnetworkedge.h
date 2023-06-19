@@ -13,12 +13,30 @@ class CustomNetworkEdge : public qan::Edge
 	QML_ELEMENT
   public:
 	explicit CustomNetworkEdge(QObject* parent = nullptr) : qan::Edge{parent} { }
+	CustomNetworkEdge(const qan::Edge& e);
 	virtual ~CustomNetworkEdge() override = default;
 	CustomNetworkEdge(const CustomNetworkEdge&) = delete;
+
+	void setId(const QString id);
+	void setBandwidth(const double bandwidth);
+	void setSendingData(const bool sending);
+	QString getId();
+	double getBandwidth();
+	bool isSendingData();
 
   public:
 	static  QQmlComponent*  delegate(QQmlEngine& engine, QObject* parent = nullptr) noexcept;
 	static  qan::EdgeStyle* style(QObject* parent = nullptr) noexcept;
+	static QPointer<CustomNetworkEdge> edgeFromJSON(CustomNetworkGraph* g, QJsonObject edgeObj);
+	static QJsonObject edgeToJSON(CustomNetworkEdge* e);
+
+  private:
+	QPointer<qan::EdgeStyle> m_style;
+	QString m_id;
+	double m_bandwidth;
+	bool sendingData = false; //As in currently sending data
+
+	void setEdgeStyle();
 };
 
 QML_DECLARE_TYPE(CustomNetworkEdge)

@@ -26,13 +26,12 @@ class GraphModel : public QObject
 	explicit GraphModel(QObject *parent = nullptr);
 	QPointer<qan::Graph> getGraphElement();
 	QHash<QString, QPointer<CustomNetworkNode>>* getNodes();
-	QHash<QString, QPointer<qan::Edge>>* getEdges();
+	QHash<QString, QPointer<CustomNetworkEdge>>* getEdges();
 
-	//void setGraphElement(QPointer<qan::Graph>);
 	void setGraphElement(QPointer<CustomNetworkGraph>);
 	void setGraphView(QPointer<qan::GraphView>);
 	void setNodeMap(QHash<QString, QPointer<CustomNetworkNode>>*);
-	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
+	void setEdgeMap(QHash<QString, QPointer<CustomNetworkEdge>>*);
 
 	bool isNewActive() const;
 	bool isNewMalicious() const;
@@ -61,7 +60,7 @@ class GraphModel : public QObject
 	void addingNodeChanged();
 
   public slots:
-	void onDrawNewEdge(QPointer<qan::Edge> e);
+	void onDrawNewEdge(qan::Edge* e);
 	void onDrawNewNode(QVariant pos);
 
 	//TCP Handlers
@@ -80,7 +79,7 @@ class GraphModel : public QObject
 	QPointer<CustomNetworkGraph> m_graphElement;
 	QPointer<qan::GraphView> m_graphView;
 	QHash<QString, QPointer<CustomNetworkNode>> m_nodeMap;
-	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
+	QHash<QString, QPointer<CustomNetworkEdge>> m_edgeMap;
 	bool m_loading = false;
 	bool m_addingNode = false;
 
