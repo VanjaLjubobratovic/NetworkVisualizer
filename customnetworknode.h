@@ -26,10 +26,11 @@ class NodeFile : public QObject{
   public:
 	QString filename;
 	QString path;
+	QByteArray hashBytes;
 	FileType filetype;
 	double size;
 
-	NodeFile(QString filename, QString path, FileType filetype, double size);
+	NodeFile(QString filename, QString path, FileType filetype, double size, QByteArray hash);
 	bool operator==(const NodeFile* other) const;
 	static QPointer<NodeFile> fileFromJSON(QJsonObject fileObj);
 	static QJsonObject fileToJSON(NodeFile* f);

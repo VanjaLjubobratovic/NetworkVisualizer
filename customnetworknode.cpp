@@ -2,13 +2,13 @@
 #include <QPainter>
 #include <QPainterPath>
 
-NodeFile::NodeFile(QString filename, QString path, FileType filetype, double size)
-	:filename(filename), path(path), filetype(filetype), size(size)
+NodeFile::NodeFile(QString filename, QString path, FileType filetype, double size, QByteArray hash)
+	:filename(filename), path(path), filetype(filetype), size(size), hashBytes(hash)
 {
 }
 
 bool NodeFile::operator==(const NodeFile *other) const {
-	return (QString::compare(other->path, path) && QString::compare(other->filename, filename));
+	return hashBytes == other->hashBytes;
 }
 
 QPointer<NodeFile> NodeFile::fileFromJSON(QJsonObject fileObj) {
@@ -16,8 +16,9 @@ QPointer<NodeFile> NodeFile::fileFromJSON(QJsonObject fileObj) {
 	QString path = fileObj["path"].toString();
 	FileType filetype = FileType::generic; //TODO: implement this
 	double size = fileObj["size"].toDouble();
+	QByteArray hash = QByteArray::fromHex(fileObj["hash"].toString().toLatin1());
 
-	return new NodeFile(filename, path, filetype, size);
+	return new NodeFile(filename, path, filetype, size, hash);
 }
 
 QJsonObject NodeFile::fileToJSON(NodeFile *f) {
@@ -26,6 +27,7 @@ QJsonObject NodeFile::fileToJSON(NodeFile *f) {
 	fileObj.insert("path", f->path);
 	fileObj.insert("size", f->size);
 	fileObj.insert("filetype", f->filetype);
+	fileObj.insert("hash", QString::fromLatin1(f->hashBytes.toHex()));
 
 	return fileObj;
 }
