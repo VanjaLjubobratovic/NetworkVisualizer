@@ -66,14 +66,14 @@ class GraphModel : public QObject
 	//TCP Handlers
 	void handleNewConnection();
 	void handleSocketData();
-	void handleInsertNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket);
-	void handleRemoveNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket);
-	void handleInsertEdgeCommand(const QJsonObject edgeObj, const QTcpSocket* socket);
-	void handleRemoveEdgeCommand(const QJsonObject edgeObj, const QTcpSocket* socket);
-	void handleInsertFileCommand(const QJsonObject fileObj, const QTcpSocket* socket);
-	void handleRemoveFileCommand(const QJsonObject fileObj, const QTcpSocket* socket);
-	void handleSetActiveCommand(const QJsonObject payload, const QTcpSocket* socket);
-	void handleSetMaliciousCommand(const QJsonObject payload, const QTcpSocket* socket);
+	void handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket);
+	void handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket);
+	void handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket* socket);
+	void handleRemoveEdgeCommand(const QJsonObject edgeObj, QTcpSocket* socket);
+	void handleInsertFileCommand(const QJsonObject fileObj, QTcpSocket* socket);
+	void handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket* socket);
+	void handleSetActiveCommand(const QJsonObject payload, QTcpSocket* socket);
+	void handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket* socket);
 
   private:
 	QPointer<CustomNetworkGraph> m_graphElement;

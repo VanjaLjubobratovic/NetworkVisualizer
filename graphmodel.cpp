@@ -13,7 +13,6 @@ GraphModel::GraphModel(QObject *parent)
 
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
-	//QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 
 	tcpServer = new QTcpServer(this);
 	QObject::connect(tcpServer, &QTcpServer::newConnection, this, &GraphModel::handleNewConnection);
@@ -25,7 +24,6 @@ void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 
 	qDebug() << "Server started, waiting for connections...";
 
- //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
 	QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
@@ -273,7 +271,8 @@ void GraphModel::handleSocketData() {
 	QString command = document.object().value("command").toString();
 	QJsonObject payload = document.object().value("payload").toObject();
 
-	qDebug() << command << payload;
+	qDebug() << QString::fromUtf8(data);
+	qDebug() << document;
 
 	if(command == "insertNode") {
 		handleInsertNodeCommand(payload, clientSocket);
@@ -291,62 +290,143 @@ void GraphModel::handleSocketData() {
 		handleSetActiveCommand(payload, clientSocket);
 	} else if (command == "setMalicious") {
 		handleSetMaliciousCommand(payload, clientSocket);
+	} else {
+		qDebug() << "Unknown command";
 	}
 
 	QString response = "Command " + command + " received and processed";
-	clientSocket->write(response.toUtf8());
+	//clientSocket->write(response.toUtf8());
 }
 
-void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, const QTcpSocket* socket) {
+void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket) {
 	auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
 	n->setId(GraphModel::generateUID(m_nodeMap));
 	m_nodeMap[n->getID()] = n;
 
-	/*QJsonObject response;
-	response.insert("message", "Success");
-	response.insert("command", "insertNode");
-	response.insert("nodeId", n->getID());*/
+	QJsonObject response;
+	response["result"] = "Success";
+	response["command"] = "insertNode";
+	response["nodeId"] = n->getID();
 
-	//TODO: write a response
+	qDebug() << response;
+
+	//TODO: make this short like in other handlers
+	QString responseStr = QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact);
+	socket->write(responseStr.toUtf8());
 }
 
-void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, const QTcpSocket *socket) {
+void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket *socket) {
+	//TODO: Handle dangling edges
+	QJsonObject response;
 	QString id = nodeObj.value("nodeId").toString();
-	auto n = m_nodeMap[id];
+	qan::Node* n = m_nodeMap.value(id); //remove requires base class
 
 	if(!n) {
-		//TODO: write a response
-		return;
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	} else {
+		response["result"] = "Success";
+		m_graphElement->removeNode(n);
+		m_nodeMap.remove(id);
 	}
 
-	m_graphElement->removeNode(n);
-	m_nodeMap.remove(id);
+	response["command"] = "removeNode";
+	response["nodeId"] = id;
 
-	//TODO: send response
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 
-void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, const QTcpSocket *socket) {
-	//TODO:
+void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString srcId = edgeObj.value("src").toString();
+	QString dstId = edgeObj.value("dst").toString();
+	double bandwidth = edgeObj.value("bandwidth").toDouble();
+
+	auto e = m_graphElement->insertCustomEdge(m_nodeMap[srcId], m_nodeMap[dstId]);
+	//TODO: fix
+	auto edg = dynamic_cast<CustomNetworkEdge*>(e); //Has to be done until edgeExists is fixed
+	e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+
+	if(edgeExists(e)) {
+		m_graphElement->removeEdge(e);
+		response["result"] = "Failure";
+		response["reason"] = "Edge already exists";
+	} else {
+		response["result"] = "Success";
+		edg->setId(GraphModel::generateUID(m_edgeMap));
+		m_edgeMap.insert(edg->getId(), edg);
+	}
+
+	response["edgeId"] = edg->getId();
+	response["command"] = "insertEdge";
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 
-void GraphModel::handleRemoveEdgeCommand(const QJsonObject edgeObj, const QTcpSocket *socket) {
-	//TODO:
+void GraphModel::handleRemoveEdgeCommand(const QJsonObject edgeObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString edgeId = edgeObj.value("edgeId").toString();
+	qan::Edge* e = m_edgeMap.value(edgeId); //remove requires base class
+
+	if(!e) {
+		response["result"] = "Failure";
+		response["reason"] = "Edge doesn't exist";
+	} else {
+		response["result"] = "Success";
+		m_graphElement->removeEdge(e);
+		m_edgeMap.remove(edgeId);
+	}
+
+	response["command"] = "removeEdge";
+	response["edgeId"] = edgeId;
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 
-void GraphModel::handleInsertFileCommand(const QJsonObject fileObj, const QTcpSocket *socket) {
+void GraphModel::handleInsertFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
 	//TODO
 }
 
-void GraphModel::handleRemoveFileCommand(const QJsonObject fileObj, const QTcpSocket *socket) {
+void GraphModel::handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
 	//TODO
 }
 
-void GraphModel::handleSetActiveCommand(const QJsonObject payload, const QTcpSocket *socket) {
-	//TODO
+void GraphModel::handleSetActiveCommand(const QJsonObject payload, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = payload.value("nodeId").toString();
+	bool active = payload.value("active").toBool();
+
+	if(auto n = m_nodeMap.value(nodeId)) {
+		response["message"] = "Success";
+		n->setActive(active);
+	} else {
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	}
+
+	response["command"] = "setActive";
+	response["nodeId"] = nodeId;
+
+	socket->write(QJsonDocument(response).toJson());
 }
 
-void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, const QTcpSocket *socket) {
-	//TODO
+void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = payload.value("nodeId").toString();
+	bool malicious = payload.value("malicious").toBool();
+
+	if(auto n = m_nodeMap.value(nodeId)) {
+		response["message"] = "Success";
+		n->setMalicious(malicious);
+	} else {
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	}
+
+	response["command"] = "setMalicious";
+	response["nodeId"] = nodeId;
+
+	socket->write(QJsonDocument(response).toJson());
 }
 
 

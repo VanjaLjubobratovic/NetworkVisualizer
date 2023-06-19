@@ -4,6 +4,10 @@ void CustomNetworkEdge::setId(const QString id) {
 	m_id = id;
 }
 
+QString CustomNetworkEdge::getId() {
+	return m_id;
+}
+
 QQmlComponent*  CustomNetworkEdge::delegate(QQmlEngine& engine, QObject* parent) noexcept
 {
 	static std::unique_ptr<QQmlComponent>   customNetworkEdge_delegate;
