@@ -13,7 +13,7 @@ GraphModel::GraphModel(QObject *parent)
 
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
-	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
+	//QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 
 	tcpServer = new QTcpServer(this);
 	QObject::connect(tcpServer, &QTcpServer::newConnection, this, &GraphModel::handleNewConnection);
@@ -26,7 +26,7 @@ void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	qDebug() << "Server started, waiting for connections...";
 
  //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
- //QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
+	QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
@@ -127,13 +127,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		return false;
 	}
 
-	/* insertEdge() function triggers the same signal
-	 * like drawing in UI does so the slot function gets
-	 * called and adds a duplicate edge.
-	 * m_loading mitigates that.
-	 */
-	m_loading = true;
-
 	QJsonObject jsonObj = jsonDoc.object();
 
 	GraphModel::clearGraph();
@@ -162,7 +155,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
+			auto e = dynamic_cast<CustomNetworkEdge*>(m_graphElement->insertCustomEdge(m_nodeMap[from], m_nodeMap[to]));
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -176,7 +169,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		qDebug() << "JSON document contains no edges";
 	}
 
-	m_loading = false;
 
 	//Calculating layout
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
@@ -360,12 +352,7 @@ void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, const QTcp
 
 
 //Slot for when a new edge is drawn via UI
-void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
-	if(m_loading) {
-		qDebug() << "Loading from JSON, ignoring duplicate edges...";
-		return;
-	}
-
+void GraphModel::onDrawNewEdge(qan::Edge* e) {
 	if (edgeExists(e)) {
 		//Drawing via UI already added duplicate edge to graph here so it must be removed
 		qDebug() << "Edge already exists, ignoring...";
@@ -373,10 +360,20 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 		return;
 	}
 
-	e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+	//This is such a hack, but it works
+	//Proper way would require too much overriding in custom classes
+	//Or I'm just a little bit slow
+
+	m_graphElement->removeEdge(e);
+	auto edge = dynamic_cast<CustomNetworkEdge*>(
+		m_graphElement->insertCustomEdge(e->getSource(), e->getDestination()));
 
 	QString id = generateUID(m_edgeMap);
-	m_edgeMap.insert(id, e);
+
+	edge->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+	edge->setId(id);
+
+	m_edgeMap.insert(id, edge);
 
 	qDebug() << "New edge inserted:" << id;
 }
