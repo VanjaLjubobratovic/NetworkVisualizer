@@ -13,7 +13,6 @@ class CustomNetworkEdge : public qan::Edge
 	QML_ELEMENT
   public:
 	explicit CustomNetworkEdge(QObject* parent = nullptr) : qan::Edge{parent} { }
-	CustomNetworkEdge(const qan::Edge& e);
 	virtual ~CustomNetworkEdge() override = default;
 	CustomNetworkEdge(const CustomNetworkEdge&) = delete;
 

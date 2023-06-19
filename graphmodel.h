@@ -80,7 +80,6 @@ class GraphModel : public QObject
 	QPointer<qan::GraphView> m_graphView;
 	QHash<QString, QPointer<CustomNetworkNode>> m_nodeMap;
 	QHash<QString, QPointer<CustomNetworkEdge>> m_edgeMap;
-	bool m_loading = false;
 	bool m_addingNode = false;
 
 	QString getNodeId(QPointer<qan::Node> targetNode);

@@ -127,13 +127,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		return false;
 	}
 
-	/* insertEdge() function triggers the same signal
-	 * like drawing in UI does so the slot function gets
-	 * called and adds a duplicate edge.
-	 * m_loading mitigates that.
-	 */
-	m_loading = true;
-
 	QJsonObject jsonObj = jsonDoc.object();
 
 	GraphModel::clearGraph();
@@ -176,7 +169,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		qDebug() << "JSON document contains no edges";
 	}
 
-	m_loading = false;
 
 	//Calculating layout
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
@@ -361,11 +353,6 @@ void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, const QTcp
 
 //Slot for when a new edge is drawn via UI
 void GraphModel::onDrawNewEdge(qan::Edge* e) {
-	if(m_loading) {
-		qDebug() << "Loading from JSON, ignoring duplicate edges...";
-		return;
-	}
-
 	if (edgeExists(e)) {
 		//Drawing via UI already added duplicate edge to graph here so it must be removed
 		qDebug() << "Edge already exists, ignoring...";
