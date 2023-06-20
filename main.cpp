@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	qmlRegisterType<CustomNetworkGraph>("CustomElems", 1, 0, "CustomNetworkGraph");
 
 	QQmlApplicationEngine engine;
-	const QUrl url(u"qrc:/NetworkVisualizer/Main.qml"_qs);
+	const QUrl url("qrc:/NetworkVisualizer/Main.qml");
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
 		&app, []() { QCoreApplication::exit(-1); },
 		Qt::QueuedConnection);

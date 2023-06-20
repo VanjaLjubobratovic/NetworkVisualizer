@@ -1,0 +1,29 @@
+{
+    "edges": {
+    },
+    "nodes": {
+        "FrC": {
+            "active": true,
+            "files": {
+            },
+            "id": "FrC",
+            "label": "TCP Node",
+            "malicious": false
+        },
+        "Zal": {
+            "active": false,
+            "files": {
+                "0": {
+                    "filename": "nekiFile",
+                    "filetype": 5,
+                    "hash": "4b0716091e81586287f6e2a9a86b0d572f6220cacea60399e6d82a3a05f89690",
+                    "path": "/home/vanja/nesto",
+                    "size": "5000"
+                }
+            },
+            "id": "Zal",
+            "label": "TCP Node",
+            "malicious": false
+        }
+    }
+}

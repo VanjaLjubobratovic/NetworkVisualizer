@@ -266,8 +266,8 @@ void GraphModel::handleSocketData() {
 	QString command = document.object().value("command").toString();
 	QJsonObject payload = document.object().value("payload").toObject();
 
-	qDebug() << QString::fromUtf8(data);
-	qDebug() << document;
+	/*qDebug() << QString::fromUtf8(data);
+	qDebug() << document;*/
 
 	if(command == "insertNode") {
 		handleInsertNodeCommand(payload, clientSocket);
@@ -553,7 +553,7 @@ QString GraphModel::getNodeInfo(qan::Node *n) {
 QString GraphModel::getNetworkInfo(){
 	double malicious = 0, active = 0, maliciousActive = 0;
 	double maliciousPer, activePer, maliciousActivePer;
-	double data = 0;
+	int data = 0;
 
 	for(const auto n : m_nodeMap) {
 		if (n->isMalicious()) {
@@ -564,6 +564,8 @@ QString GraphModel::getNetworkInfo(){
 		}
 		if(n->isActive())
 			active++;
+
+		data += n->getDataSize();
 	}
 
 	activePer = active / std::max(1.0, double(m_nodeMap.count())) * 100.0;
@@ -581,7 +583,7 @@ QString GraphModel::getNetworkInfo(){
 				   + "<font color=\'#42b4ff'><strong>Active non-malicious:</strong></font> " + QString::number((active - maliciousActive) / std::max(1.0, active) * 100.0) + "%<br><br>"
 
 				   + "<strong>Edges:</strong> " + QString::number(m_edgeMap.count()) + "<br>"
-				   + "<strong>Data:</strong> " + QString::number(data) + " GiB";
+				   + "<strong>Data:</strong> " + QString::number(data) + " B";
 
 	//qDebug() << "getNodeInfo:" << info;
 

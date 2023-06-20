@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>FileIcons/containsfiles.png</file>
         <file>qtquickcontrols2.conf</file>
     </qresource>
 </RCC>

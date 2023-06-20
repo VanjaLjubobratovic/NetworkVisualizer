@@ -15,9 +15,10 @@ QPointer<NodeFile> NodeFile::fileFromJSON(QJsonObject fileObj) {
 	QString filename = fileObj["filename"].toString();
 	QString path = fileObj["path"].toString();
 	FileType filetype = FileType::generic; //TODO: implement this
-	double size = fileObj["size"].toDouble();
+	int size = fileObj["size"].toString().toInt();
 	QByteArray hash = fileObj["hash"].toString().toUtf8();
 
+	qDebug() << "FILESIZE" << size << fileObj["size"].toString() << filename;
 	return new NodeFile(filename, path, filetype, size, hash);
 }
 
@@ -25,7 +26,7 @@ QJsonObject NodeFile::fileToJSON(NodeFile *f) {
 	QJsonObject fileObj;
 	fileObj.insert("filename", f->filename);
 	fileObj.insert("path", f->path);
-	fileObj.insert("size", f->size);
+	fileObj.insert("size", QString::number(f->size));
 	fileObj.insert("filetype", f->filetype);
 	fileObj.insert("hash", QString::fromUtf8(f->hashBytes));
 
@@ -40,11 +41,12 @@ CustomNetworkNode::CustomNetworkNode(QString id, bool malicious, bool active)
 }
 
 QString CustomNetworkNode::getNodeInfo() {
-	return QString("ID: %1\nNeighbours: %2\n# of files: %3\nActive: %4\nMalicious: %5\n")
+	return QString("ID: %1\nNeighbours: %2\nNum. of files: %3\nActive: %4\nMalicious: %5\nData size: %6")
 		.arg(m_id).arg(m_neighbours.length())
 		.arg(m_files.length())
 		.arg(m_active ? "True" : "False")
-		.arg(m_malicious ? "True" : "False");
+		.arg(m_malicious ? "True" : "False")
+		.arg(getDataSize());
 }
 
 void CustomNetworkNode::setId(QString id) {
@@ -70,14 +72,14 @@ void CustomNetworkNode::clearNeighbours() {
 void CustomNetworkNode::addFile(QPointer<NodeFile> file) {
 	if(!containsFile(file->hashBytes))
 			m_files.append(file);
+	setImage(QUrl());
 }
 
 bool CustomNetworkNode::removeFile(QByteArray hash) {
 	for(int i = 0; i < m_files.length(); i++) {
-		qDebug() << m_files.at(i)->hashBytes;
-		qDebug() << hash;
 		if(m_files.at(i)->hashBytes == hash) {
 			m_files.removeAt(i);
+			setImage(QUrl());
 			return true;
 		}
 	}
@@ -126,6 +128,13 @@ bool CustomNetworkNode::isMalicious() {
 
 bool CustomNetworkNode::isActive() {
 	return m_active;
+}
+
+int CustomNetworkNode::getDataSize() {
+	int data = 0;
+	for(auto f : m_files)
+		data += f->size;
+	return data;
 }
 
 bool CustomNetworkNode::operator==(const CustomNetworkNode &other) const {
@@ -250,4 +259,14 @@ void CustomNetworkNode::setNodeShape() {
 	style()->setEffectRadius(7);
 
 	m_shapeSet = true;
+}
+
+void CustomNetworkNode::setImage(QUrl url) noexcept{
+	if(!m_files.isEmpty()) {
+		m_image = QUrl("qrc:/FileIcons/containsfiles.png");
+	} else {
+		m_image = nullptr;
+	}
+
+	emit imageChanged();
 }

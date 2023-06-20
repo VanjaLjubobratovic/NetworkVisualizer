@@ -1,0 +1,108 @@
+{
+    "edges": {
+        "0hV": {
+            "data": {
+            },
+            "from": "nKd",
+            "to": "aHq"
+        },
+        "2eb": {
+            "data": {
+            },
+            "from": "jpx",
+            "to": "5N9"
+        },
+        "7Pz": {
+            "data": {
+            },
+            "from": "aHq",
+            "to": "jpx"
+        },
+        "7RO": {
+            "data": {
+            },
+            "from": "hNm",
+            "to": "aHq"
+        },
+        "Aqp": {
+            "data": {
+            },
+            "from": "f4u",
+            "to": "hNm"
+        },
+        "GKq": {
+            "data": {
+            },
+            "from": "nKd",
+            "to": "jpx"
+        },
+        "KNZ": {
+            "data": {
+            },
+            "from": "aHq",
+            "to": "f4u"
+        },
+        "bYu": {
+            "data": {
+            },
+            "from": "f4u",
+            "to": "nKd"
+        },
+        "zr6": {
+            "data": {
+            },
+            "from": "5N9",
+            "to": "aHq"
+        }
+    },
+    "nodes": {
+        "5N9": {
+            "active": true,
+            "files": {
+            },
+            "id": "5N9",
+            "label": "New node",
+            "malicious": false
+        },
+        "aHq": {
+            "active": true,
+            "files": {
+            },
+            "id": "aHq",
+            "label": "New node",
+            "malicious": false
+        },
+        "f4u": {
+            "active": true,
+            "files": {
+            },
+            "id": "f4u",
+            "label": "New node",
+            "malicious": true
+        },
+        "hNm": {
+            "active": true,
+            "files": {
+            },
+            "id": "hNm",
+            "label": "New node",
+            "malicious": true
+        },
+        "jpx": {
+            "active": false,
+            "files": {
+            },
+            "id": "jpx",
+            "label": "New node",
+            "malicious": false
+        },
+        "nKd": {
+            "active": false,
+            "files": {
+            },
+            "id": "nKd",
+            "label": "New node",
+            "malicious": true
+        }
+    }
+}

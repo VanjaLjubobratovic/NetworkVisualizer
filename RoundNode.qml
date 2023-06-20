@@ -91,10 +91,22 @@ Qan.NodeItem {
 		color: Qt.rgba(0, 0, 0, 0)
 	}
 	Label {
+		id: label
 		text: roundNode.node ? roundNode.node.label : ""
 		z: 3
 		anchors.centerIn: parent
 	}
+
+	Image {
+		z:3
+		id: image
+		anchors.top: label.bottom
+		anchors.horizontalCenter: parent.horizontalCenter
+		source: roundNode.node.image
+		width: 20
+		height: 20
+	}
+
 	Qan.Glow {
 		z: 0
 		source: background

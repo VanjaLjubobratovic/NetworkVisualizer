@@ -28,7 +28,7 @@ class NodeFile : public QObject{
 	QString path;
 	QByteArray hashBytes;
 	FileType filetype;
-	double size; //in B
+	int size; //in B
 
 	NodeFile(QString filename, QString path, FileType filetype, double size, QByteArray hash);
 	bool operator==(const NodeFile* other) const;
@@ -47,6 +47,10 @@ class CustomNetworkNode : public qan::Node
 	CustomNetworkNode( const CustomNetworkNode& ) = delete;
 
 	Q_INVOKABLE QString getNodeInfo();
+	Q_PROPERTY(QUrl image READ getImage WRITE setImage NOTIFY imageChanged)
+
+	const QUrl& getImage() const noexcept { return m_image; }
+	void setImage(QUrl image) noexcept;
 
 	void setId(QString id);
 	void addNeighbour(QPointer<CustomNetworkNode> n);
@@ -66,6 +70,8 @@ class CustomNetworkNode : public qan::Node
 	bool isMalicious();
 	bool isActive();
 
+	int getDataSize();
+
 	bool operator==(const CustomNetworkNode& other) const;
 
   public:
@@ -75,12 +81,14 @@ class CustomNetworkNode : public qan::Node
 	static QJsonObject nodeToJSON(CustomNetworkNode* n);
 
   signals:
+	void imageChanged();
 
   private:
 	QPointer<qan::NodeStyle> m_style;
 	QList<QPointer<CustomNetworkNode>> m_neighbours;
 	QList<QPointer<NodeFile>> m_files;
 	QString m_id;
+	QUrl m_image;
 	bool m_malicious = false;
 	bool m_active = true;
 	bool m_shapeSet = false;
