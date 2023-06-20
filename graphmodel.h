@@ -87,6 +87,7 @@ class GraphModel : public QObject
 	bool edgeExists(QPointer<qan::Edge> targetEdge);
 
 	void forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList);
+	void removeDanglingEdges();
 	QPointF getNodeCenter(QPointer<qan::Node>);
 
 	template<typename T>

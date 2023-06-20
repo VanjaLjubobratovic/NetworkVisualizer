@@ -16,7 +16,7 @@ QPointer<NodeFile> NodeFile::fileFromJSON(QJsonObject fileObj) {
 	QString path = fileObj["path"].toString();
 	FileType filetype = FileType::generic; //TODO: implement this
 	double size = fileObj["size"].toDouble();
-	QByteArray hash = QByteArray::fromHex(fileObj["hash"].toString().toLatin1());
+	QByteArray hash = fileObj["hash"].toString().toUtf8();
 
 	return new NodeFile(filename, path, filetype, size, hash);
 }
@@ -27,7 +27,7 @@ QJsonObject NodeFile::fileToJSON(NodeFile *f) {
 	fileObj.insert("path", f->path);
 	fileObj.insert("size", f->size);
 	fileObj.insert("filetype", f->filetype);
-	fileObj.insert("hash", QString::fromLatin1(f->hashBytes.toHex()));
+	fileObj.insert("hash", QString::fromUtf8(f->hashBytes));
 
 	return fileObj;
 }
@@ -68,8 +68,21 @@ void CustomNetworkNode::clearNeighbours() {
 }
 
 void CustomNetworkNode::addFile(QPointer<NodeFile> file) {
-	if (!m_files.contains(file))
+	if(!containsFile(file->hashBytes))
 			m_files.append(file);
+}
+
+bool CustomNetworkNode::removeFile(QByteArray hash) {
+	for(int i = 0; i < m_files.length(); i++) {
+		qDebug() << m_files.at(i)->hashBytes;
+		qDebug() << hash;
+		if(m_files.at(i)->hashBytes == hash) {
+			m_files.removeAt(i);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void CustomNetworkNode::setMalicious(bool malicious) {
@@ -100,8 +113,11 @@ bool CustomNetworkNode::isNeighbour(CustomNetworkNode *n) {
 	return m_neighbours.contains(n);
 }
 
-bool CustomNetworkNode::containsFile(QPointer<NodeFile> f) {
-	return m_files.contains(f);
+bool CustomNetworkNode::containsFile(QByteArray hash) {
+	for(auto file : m_files)
+		if(file->hashBytes == hash)
+			return true;
+	return false;
 }
 
 bool CustomNetworkNode::isMalicious() {

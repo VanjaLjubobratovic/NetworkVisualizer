@@ -88,13 +88,8 @@ void GraphModel::removeSelected() {
 		m_graphElement->removeEdge(edge);
 	}
 
-	// Deleting "dangling edges" left after node deletion
-	for(auto key : m_edgeMap.keys()) {
-		if (!m_edgeMap.value(key)) {
-			qDebug() << "Removing dangling edge:" << key;
-			m_edgeMap.remove(key);
-		}
-	}
+	// Deleting "dangling edges" from map left after node deletion
+	removeDanglingEdges();
 }
 
 
@@ -316,7 +311,6 @@ void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* 
 }
 
 void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket *socket) {
-	//TODO: Handle dangling edges
 	QJsonObject response;
 	QString id = nodeObj.value("nodeId").toString();
 	qan::Node* n = m_nodeMap.value(id); //remove requires base class
@@ -329,6 +323,8 @@ void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket *
 		m_graphElement->removeNode(n);
 		m_nodeMap.remove(id);
 	}
+
+	removeDanglingEdges();
 
 	response["command"] = "removeNode";
 	response["nodeId"] = id;
@@ -380,15 +376,56 @@ void GraphModel::handleRemoveEdgeCommand(const QJsonObject edgeObj, QTcpSocket *
 	response["command"] = "removeEdge";
 	response["edgeId"] = edgeId;
 
-	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
 }
 
 void GraphModel::handleInsertFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
-	//TODO
+	QJsonObject response;
+	QString nodeId = fileObj.value("nodeId").toString();
+
+	auto nodeFile = NodeFile::fileFromJSON(fileObj);
+	auto n = m_nodeMap.value(nodeId);
+
+	response["result"] = "Failure";
+	response["command"] = "insertFile";
+	response["nodeId"] = nodeId;
+	response["hash"] = fileObj.value("hash");
+
+	if(!n) {
+		response["reason"] = "Node doesn't exist";
+	} else if (!nodeFile) {
+		response["reason"] = "Incorrect file JSON";
+	} else if (n->containsFile(nodeFile->hashBytes)) {
+		response["reason"] = "File already exists";
+	} else {
+		response["result"] = "Success";
+		n->addFile(nodeFile);
+	}
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
 }
 
 void GraphModel::handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
-	//TODO
+	QJsonObject response;
+	QString nodeId = fileObj.value("nodeId").toString();
+	QByteArray hash = fileObj.value("hash").toString().toUtf8();
+
+	auto n = m_nodeMap.value(nodeId);
+
+	response["result"] = "Failure";
+	response["command"] = "removeFile";
+	response["nodeId"] = nodeId;
+	response["hash"] = fileObj.value("hash");
+
+	if(!n) {
+		response["reason"] = "Node doesn't exist";
+	} else if(!n->removeFile(hash)) {
+		response["reason"] = "File doesn't exist";
+	} else {
+		response["result"] = "Success";
+	}
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
 }
 
 void GraphModel::handleSetActiveCommand(const QJsonObject payload, QTcpSocket *socket) {
@@ -407,7 +444,7 @@ void GraphModel::handleSetActiveCommand(const QJsonObject payload, QTcpSocket *s
 	response["command"] = "setActive";
 	response["nodeId"] = nodeId;
 
-	socket->write(QJsonDocument(response).toJson());
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 
 void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket *socket) {
@@ -426,7 +463,7 @@ void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket
 	response["command"] = "setMalicious";
 	response["nodeId"] = nodeId;
 
-	socket->write(QJsonDocument(response).toJson());
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 
 
@@ -642,6 +679,18 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 	QPointF viewCenter(sumX / nodeCount, sumY / nodeCount);
 	m_graphView->centerOnPosition(viewCenter);
+}
+
+void GraphModel::removeDanglingEdges() {
+	//When a node is deleted, qan::Graph automatically
+	//Deletes all edges connected to it
+	//This has to be done manually for my HashMap of edges
+	for(auto key : m_edgeMap.keys()) {
+		if (!m_edgeMap.value(key)) {
+			qDebug() << "Removing dangling edge:" << key;
+			m_edgeMap.remove(key);
+		}
+	}
 }
 
 
