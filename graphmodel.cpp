@@ -2,18 +2,29 @@
 #include <cmath>
 #include <QQuickItem>
 
+#include <QTcpSocket>
+#include <QTcpServer>
+
+
 GraphModel::GraphModel(QObject *parent)
 	: QObject{parent}
 {
-
 }
 
 void GraphModel::setGraphElement(QPointer<CustomNetworkGraph> graph) {
 	m_graphElement = graph;
-	QObject::connect(m_graphElement, &qan::Graph::edgeInserted, this, &GraphModel::onDrawNewEdge);
 
- //TODO: change to this; This won't trigger onDrawNew edge while loading from JSON, only while drawing via UI
- //QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
+	tcpServer = new QTcpServer(this);
+	QObject::connect(tcpServer, &QTcpServer::newConnection, this, &GraphModel::handleNewConnection);
+
+	if(!tcpServer->listen(QHostAddress::LocalHost, 1234)) {
+		qDebug() << "Failed to start server";
+		return;
+	}
+
+	qDebug() << "Server started, waiting for connections...";
+
+	QObject::connect(m_graphElement, &qan::Graph::connectorEdgeInserted, this, &GraphModel::onDrawNewEdge);
 }
 
 void GraphModel::setGraphView(QPointer<qan::GraphView> gw){
@@ -77,13 +88,8 @@ void GraphModel::removeSelected() {
 		m_graphElement->removeEdge(edge);
 	}
 
-	// Deleting "dangling edges" left after node deletion
-	for(auto key : m_edgeMap.keys()) {
-		if (!m_edgeMap.value(key)) {
-			qDebug() << "Removing dangling edge:" << key;
-			m_edgeMap.remove(key);
-		}
-	}
+	// Deleting "dangling edges" from map left after node deletion
+	removeDanglingEdges();
 }
 
 
@@ -114,13 +120,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		return false;
 	}
 
-	/* insertEdge() function triggers the same signal
-	 * like drawing in UI does so the slot function gets
-	 * called and adds a duplicate edge.
-	 * m_loading mitigates that.
-	 */
-	m_loading = true;
-
 	QJsonObject jsonObj = jsonDoc.object();
 
 	GraphModel::clearGraph();
@@ -149,7 +148,7 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 			QString to = edgeObj["to"].toString();
 			QString from = edgeObj["from"].toString();
 
-			auto e = m_graphElement->insertEdge(m_nodeMap[from], m_nodeMap[to]);
+			auto e = dynamic_cast<CustomNetworkEdge*>(m_graphElement->insertCustomEdge(m_nodeMap[from], m_nodeMap[to]));
 			e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
 
 			//App treats all edges as undirected while QuickQanava doesn't
@@ -163,7 +162,6 @@ bool GraphModel::readFromFile(QUrl fileUrl) {
 		qDebug() << "JSON document contains no edges";
 	}
 
-	m_loading = false;
 
 	//Calculating layout
 	forceDirectedLayout(m_graphElement->get_nodes(), m_graphElement->get_edges());
@@ -250,13 +248,228 @@ void GraphModel::onDrawNewNode(const QVariant pos) {
 	qDebug() << "New node inserted:" << id;
 }
 
-//Slot for when a new edge is drawn via UI
-void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
-	if(m_loading) {
-		qDebug() << "Loading from JSON, ignoring duplicate edges...";
-		return;
+void GraphModel::handleNewConnection() {
+	QTcpSocket* clientSocket = tcpServer->nextPendingConnection();
+	QObject::connect(clientSocket, &QTcpSocket::readyRead, this, &GraphModel::handleSocketData);
+
+	qDebug() << "New client connected.";
+
+	QString welcomeMsg = "Welcome to NetworkVisualizer server!";
+	clientSocket->write(welcomeMsg.toUtf8());
+}
+
+void GraphModel::handleSocketData() {
+	QTcpSocket* clientSocket = qobject_cast<QTcpSocket*>(sender());
+	QByteArray data = clientSocket->readAll();
+
+	QJsonDocument document = QJsonDocument::fromJson(data);
+	QString command = document.object().value("command").toString();
+	QJsonObject payload = document.object().value("payload").toObject();
+
+	qDebug() << QString::fromUtf8(data);
+	qDebug() << document;
+
+	if(command == "insertNode") {
+		handleInsertNodeCommand(payload, clientSocket);
+	} else if(command == "removeNode") {
+		handleRemoveNodeCommand(payload, clientSocket);
+	} else if (command == "insertEdge") {
+		handleInsertEdgeCommand(payload, clientSocket);
+	} else if (command == "removeEdge") {
+		handleRemoveEdgeCommand(payload, clientSocket);
+	} else if (command == "insertFile") {
+		handleInsertFileCommand(payload, clientSocket);
+	} else if (command == "removeFile") {
+		handleRemoveFileCommand(payload, clientSocket);
+	} else if (command == "setActive") {
+		handleSetActiveCommand(payload, clientSocket);
+	} else if (command == "setMalicious") {
+		handleSetMaliciousCommand(payload, clientSocket);
+	} else {
+		qDebug() << "Unknown command";
 	}
 
+	QString response = "Command " + command + " received and processed";
+	//clientSocket->write(response.toUtf8());
+}
+
+void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket) {
+	auto n = CustomNetworkNode::nodeFromJSON(m_graphElement, nodeObj);
+	n->setId(GraphModel::generateUID(m_nodeMap));
+	m_nodeMap[n->getID()] = n;
+
+	QJsonObject response;
+	response["result"] = "Success";
+	response["command"] = "insertNode";
+	response["nodeId"] = n->getID();
+
+	qDebug() << response;
+
+	//TODO: make this short like in other handlers
+	QString responseStr = QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact);
+	socket->write(responseStr.toUtf8());
+}
+
+void GraphModel::handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString id = nodeObj.value("nodeId").toString();
+	qan::Node* n = m_nodeMap.value(id); //remove requires base class
+
+	if(!n) {
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	} else {
+		response["result"] = "Success";
+		m_graphElement->removeNode(n);
+		m_nodeMap.remove(id);
+	}
+
+	removeDanglingEdges();
+
+	response["command"] = "removeNode";
+	response["nodeId"] = id;
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+}
+
+void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString srcId = edgeObj.value("src").toString();
+	QString dstId = edgeObj.value("dst").toString();
+	double bandwidth = edgeObj.value("bandwidth").toDouble();
+
+	auto e = m_graphElement->insertCustomEdge(m_nodeMap[srcId], m_nodeMap[dstId]);
+	//TODO: fix
+	auto edg = dynamic_cast<CustomNetworkEdge*>(e); //Has to be done until edgeExists is fixed
+	e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+
+	if(edgeExists(e)) {
+		m_graphElement->removeEdge(e);
+		response["result"] = "Failure";
+		response["reason"] = "Edge already exists";
+	} else {
+		response["result"] = "Success";
+		edg->setId(GraphModel::generateUID(m_edgeMap));
+		m_edgeMap.insert(edg->getId(), edg);
+	}
+
+	response["edgeId"] = edg->getId();
+	response["command"] = "insertEdge";
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+}
+
+void GraphModel::handleRemoveEdgeCommand(const QJsonObject edgeObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString edgeId = edgeObj.value("edgeId").toString();
+	qan::Edge* e = m_edgeMap.value(edgeId); //remove requires base class
+
+	if(!e) {
+		response["result"] = "Failure";
+		response["reason"] = "Edge doesn't exist";
+	} else {
+		response["result"] = "Success";
+		m_graphElement->removeEdge(e);
+		m_edgeMap.remove(edgeId);
+	}
+
+	response["command"] = "removeEdge";
+	response["edgeId"] = edgeId;
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
+}
+
+void GraphModel::handleInsertFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = fileObj.value("nodeId").toString();
+
+	auto nodeFile = NodeFile::fileFromJSON(fileObj);
+	auto n = m_nodeMap.value(nodeId);
+
+	response["result"] = "Failure";
+	response["command"] = "insertFile";
+	response["nodeId"] = nodeId;
+	response["hash"] = fileObj.value("hash");
+
+	if(!n) {
+		response["reason"] = "Node doesn't exist";
+	} else if (!nodeFile) {
+		response["reason"] = "Incorrect file JSON";
+	} else if (n->containsFile(nodeFile->hashBytes)) {
+		response["reason"] = "File already exists";
+	} else {
+		response["result"] = "Success";
+		n->addFile(nodeFile);
+	}
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
+}
+
+void GraphModel::handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = fileObj.value("nodeId").toString();
+	QByteArray hash = fileObj.value("hash").toString().toUtf8();
+
+	auto n = m_nodeMap.value(nodeId);
+
+	response["result"] = "Failure";
+	response["command"] = "removeFile";
+	response["nodeId"] = nodeId;
+	response["hash"] = fileObj.value("hash");
+
+	if(!n) {
+		response["reason"] = "Node doesn't exist";
+	} else if(!n->removeFile(hash)) {
+		response["reason"] = "File doesn't exist";
+	} else {
+		response["result"] = "Success";
+	}
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::Compact));
+}
+
+void GraphModel::handleSetActiveCommand(const QJsonObject payload, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = payload.value("nodeId").toString();
+	bool active = payload.value("active").toBool();
+
+	if(auto n = m_nodeMap.value(nodeId)) {
+		response["message"] = "Success";
+		n->setActive(active);
+	} else {
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	}
+
+	response["command"] = "setActive";
+	response["nodeId"] = nodeId;
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+}
+
+void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket *socket) {
+	QJsonObject response;
+	QString nodeId = payload.value("nodeId").toString();
+	bool malicious = payload.value("malicious").toBool();
+
+	if(auto n = m_nodeMap.value(nodeId)) {
+		response["message"] = "Success";
+		n->setMalicious(malicious);
+	} else {
+		response["result"] = "Failure";
+		response["reason"] = "Node doesn't exist";
+	}
+
+	response["command"] = "setMalicious";
+	response["nodeId"] = nodeId;
+
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+}
+
+
+
+//Slot for when a new edge is drawn via UI
+void GraphModel::onDrawNewEdge(qan::Edge* e) {
 	if (edgeExists(e)) {
 		//Drawing via UI already added duplicate edge to graph here so it must be removed
 		qDebug() << "Edge already exists, ignoring...";
@@ -264,10 +477,20 @@ void GraphModel::onDrawNewEdge(QPointer<qan::Edge> e) {
 		return;
 	}
 
-	e->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+	//This is such a hack, but it works
+	//Proper way would require too much overriding in custom classes
+	//Or I'm just a little bit slow
+
+	m_graphElement->removeEdge(e);
+	auto edge = dynamic_cast<CustomNetworkEdge*>(
+		m_graphElement->insertCustomEdge(e->getSource(), e->getDestination()));
 
 	QString id = generateUID(m_edgeMap);
-	m_edgeMap.insert(id, e);
+
+	edge->getItem()->setDstShape(qan::EdgeStyle::ArrowShape::None);
+	edge->setId(id);
+
+	m_edgeMap.insert(id, edge);
 
 	qDebug() << "New edge inserted:" << id;
 }
@@ -456,6 +679,18 @@ void GraphModel::forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge
 
 	QPointF viewCenter(sumX / nodeCount, sumY / nodeCount);
 	m_graphView->centerOnPosition(viewCenter);
+}
+
+void GraphModel::removeDanglingEdges() {
+	//When a node is deleted, qan::Graph automatically
+	//Deletes all edges connected to it
+	//This has to be done manually for my HashMap of edges
+	for(auto key : m_edgeMap.keys()) {
+		if (!m_edgeMap.value(key)) {
+			qDebug() << "Removing dangling edge:" << key;
+			m_edgeMap.remove(key);
+		}
+	}
 }
 
 

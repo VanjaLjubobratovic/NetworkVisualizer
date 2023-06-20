@@ -26,13 +26,12 @@ class GraphModel : public QObject
 	explicit GraphModel(QObject *parent = nullptr);
 	QPointer<qan::Graph> getGraphElement();
 	QHash<QString, QPointer<CustomNetworkNode>>* getNodes();
-	QHash<QString, QPointer<qan::Edge>>* getEdges();
+	QHash<QString, QPointer<CustomNetworkEdge>>* getEdges();
 
-	//void setGraphElement(QPointer<qan::Graph>);
 	void setGraphElement(QPointer<CustomNetworkGraph>);
 	void setGraphView(QPointer<qan::GraphView>);
 	void setNodeMap(QHash<QString, QPointer<CustomNetworkNode>>*);
-	void setEdgeMap(QHash<QString, QPointer<qan::Edge>>*);
+	void setEdgeMap(QHash<QString, QPointer<CustomNetworkEdge>>*);
 
 	bool isNewActive() const;
 	bool isNewMalicious() const;
@@ -61,15 +60,26 @@ class GraphModel : public QObject
 	void addingNodeChanged();
 
   public slots:
-	void onDrawNewEdge(QPointer<qan::Edge> e);
+	void onDrawNewEdge(qan::Edge* e);
 	void onDrawNewNode(QVariant pos);
+
+	//TCP Handlers
+	void handleNewConnection();
+	void handleSocketData();
+	void handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket);
+	void handleRemoveNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket);
+	void handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket* socket);
+	void handleRemoveEdgeCommand(const QJsonObject edgeObj, QTcpSocket* socket);
+	void handleInsertFileCommand(const QJsonObject fileObj, QTcpSocket* socket);
+	void handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket* socket);
+	void handleSetActiveCommand(const QJsonObject payload, QTcpSocket* socket);
+	void handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket* socket);
 
   private:
 	QPointer<CustomNetworkGraph> m_graphElement;
 	QPointer<qan::GraphView> m_graphView;
 	QHash<QString, QPointer<CustomNetworkNode>> m_nodeMap;
-	QHash<QString, QPointer<qan::Edge>> m_edgeMap;
-	bool m_loading = false;
+	QHash<QString, QPointer<CustomNetworkEdge>> m_edgeMap;
 	bool m_addingNode = false;
 
 	QString getNodeId(QPointer<qan::Node> targetNode);
@@ -77,12 +87,15 @@ class GraphModel : public QObject
 	bool edgeExists(QPointer<qan::Edge> targetEdge);
 
 	void forceDirectedLayout(QList<qan::Node*> nodeList, QList<qan::Edge*> edgeList);
+	void removeDanglingEdges();
 	QPointF getNodeCenter(QPointer<qan::Node>);
 
 	template<typename T>
 	QString generateUID(const QHash<QString, QPointer<T>> &container);
 
 	bool newActive = true, newMalicious = false;
+
+	QPointer<QTcpServer> tcpServer;
 };
 
 #endif // CUSTOMGRAPH_H

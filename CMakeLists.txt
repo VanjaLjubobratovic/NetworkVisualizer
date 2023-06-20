@@ -21,6 +21,7 @@ qt_add_executable(appNetworkVisualizer
 	customnetworkedge.cpp
 )
 
+
 qt_add_qml_module(appNetworkVisualizer
     URI NetworkVisualizer
     VERSION 1.0

@@ -26,10 +26,11 @@ class NodeFile : public QObject{
   public:
 	QString filename;
 	QString path;
+	QByteArray hashBytes;
 	FileType filetype;
-	double size;
+	double size; //in B
 
-	NodeFile(QString filename, QString path, FileType filetype, double size);
+	NodeFile(QString filename, QString path, FileType filetype, double size, QByteArray hash);
 	bool operator==(const NodeFile* other) const;
 	static QPointer<NodeFile> fileFromJSON(QJsonObject fileObj);
 	static QJsonObject fileToJSON(NodeFile* f);
@@ -52,6 +53,7 @@ class CustomNetworkNode : public qan::Node
 	void removeNeighbour(QPointer<CustomNetworkNode> n);
 	void clearNeighbours();
 	void addFile(QPointer<NodeFile> file);
+	bool removeFile(QByteArray hash);
 	void setMalicious(bool malicious);
 	void setActive(bool active);
 
@@ -60,7 +62,7 @@ class CustomNetworkNode : public qan::Node
 	QList<QPointer<NodeFile>> getFiles();
 
 	bool isNeighbour(CustomNetworkNode* n);
-	bool containsFile(QPointer<NodeFile> f);
+	bool containsFile(QByteArray hash);
 	bool isMalicious();
 	bool isActive();
 
