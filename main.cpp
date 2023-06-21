@@ -12,6 +12,9 @@
 
 #include "graphmodel.h"
 #include "customnetworkgraph.h"
+#include "appglobals.h"
+
+QQmlApplicationEngine* g_appEngine = nullptr;
 
 //Function for accessing Qan.Graph element in QML
 /*QPointer<qan::Graph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
@@ -77,6 +80,8 @@ int main(int argc, char *argv[])
 	engine.rootContext()->setContextProperty("graphModel", graphModel);
 
 	engine.load(url);
+
+	g_appEngine = &engine;
 
 	//Make this a graphModel method
 	//QPointer<qan::Graph> graph = findGraph(&engine, "graph");

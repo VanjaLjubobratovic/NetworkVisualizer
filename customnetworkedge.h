@@ -6,6 +6,7 @@
 #include <QuickQanava>
 
 #include "customnetworknode.h"
+#include "appglobals.h"
 
 class CustomNetworkEdge : public qan::Edge
 {
@@ -22,6 +23,8 @@ class CustomNetworkEdge : public qan::Edge
 	QString getId();
 	double getBandwidth();
 	bool isSendingData();
+
+	Q_INVOKABLE void animateTransfer();
 
   public:
 	static  QQmlComponent*  delegate(QQmlEngine& engine, QObject* parent = nullptr) noexcept;

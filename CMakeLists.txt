@@ -19,6 +19,7 @@ qt_add_executable(appNetworkVisualizer
 	customnetworkgraph.cpp
 	customnetworkedge.h
 	customnetworkedge.cpp
+	appglobals.h
 )
 
 
@@ -31,6 +32,8 @@ qt_add_qml_module(appNetworkVisualizer
 		NodeListView.qml
 		RoundNode.qml
 		ColorLegend.qml
+		NetworkEdge.qml
+		FileImage.qml
 )
 
 set_target_properties(appNetworkVisualizer PROPERTIES
