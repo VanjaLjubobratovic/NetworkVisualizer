@@ -4,19 +4,19 @@ import QtQuick.Layouts 1.3
 
 Item {
 	id: fileTransferItem
-	width: 100
-	height: 100
-	ColumnLayout {
-		Image {
-			id: fileImage
-			source: "qrc:/FileIcons/containsfiles.png"
-			width: 60
-			height: 50
-		}
-		Label {
-			id: fileLabel
-			text: "Filename"
-		}
+	width: 30
+	height: 30
+	x: 10
+	y: 0
+
+	Image {
+		id: fileImage
+		source: "qrc:/FileIcons/containsfiles.png"
+		anchors.fill: parent
 	}
-	z:4
+	/*Label {
+		id: fileLabel
+		text: "Filename"
+		anchors.top: fileImage.bottom
+	}*/
 }

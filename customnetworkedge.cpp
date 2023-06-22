@@ -1,5 +1,7 @@
 #include "customnetworkedge.h"
 
+#include <QQuickView>
+
 void CustomNetworkEdge::setId(const QString id) {
 	m_id = id;
 }
@@ -29,16 +31,8 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 }
 
 void CustomNetworkEdge::animateTransfer() {
-	qDebug() << g_appEngine;
-	QQmlComponent component(g_appEngine,QUrl(QStringLiteral("qrc:/NetworkVisualizer/FileImage.qml")));
-	QObject* obj = component.create();
-	if(component.status() == QQmlComponent::Error)
-		qDebug() << component.errorString();
-
-
-	/*QMetaObject::invokeMethod(obj, "fileTransfer",
-							   Q_ARG(int, 100),
-							   Q_ARG(int, 100),
-							   Q_ARG(int, 50),
-							   Q_ARG(int, 50));*/
+	QQmlEngine* engine = qmlEngine(this->getItem());
+	QQmlComponent component(engine, QUrl("qrc:/NetworkVisualizer/FileImage.qml"));
+	QQuickItem* item = qobject_cast<QQuickItem*>(component.create());
+	item->setParentItem(this->getItem());
 }
