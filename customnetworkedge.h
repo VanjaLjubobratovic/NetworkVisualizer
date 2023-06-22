@@ -25,6 +25,7 @@ class CustomNetworkEdge : public qan::Edge
 	bool isSendingData();
 
 	Q_INVOKABLE void animateTransfer();
+	//Q_PROPERTY(type name READ name WRITE setName NOTIFY nameChanged)
 
   public:
 	static  QQmlComponent*  delegate(QQmlEngine& engine, QObject* parent = nullptr) noexcept;

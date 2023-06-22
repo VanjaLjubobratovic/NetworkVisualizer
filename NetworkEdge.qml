@@ -14,4 +14,9 @@ Qan.EdgeItem {
 		edgeItem: parent
 		color: parent.color
 	}
+
+	/*Rectangle {
+		anchors.fill: parent
+		color: "blue"
+	}*/
 }
