@@ -495,7 +495,7 @@ void GraphModel::onDrawNewEdge(qan::Edge* e) {
 	qDebug() << "New edge inserted:" << id;
 
 	//TODO: remove this
-	edge->animateTransfer();
+	edge->animateTransfer(edge->getDestination(), edge->getSource());
 }
 
 //Function for finding a key for a specified node object

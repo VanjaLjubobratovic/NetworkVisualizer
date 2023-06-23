@@ -24,7 +24,7 @@ class CustomNetworkEdge : public qan::Edge
 	double getBandwidth();
 	bool isSendingData();
 
-	Q_INVOKABLE void animateTransfer();
+	Q_INVOKABLE void animateTransfer(qan::Node* sender, qan::Node* receiver);
 	//Q_PROPERTY(type name READ name WRITE setName NOTIFY nameChanged)
 
   public:
