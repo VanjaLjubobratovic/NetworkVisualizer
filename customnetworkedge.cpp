@@ -33,10 +33,16 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) {
 	//QML item generation
 	QQmlEngine* engine = qmlEngine(this->getItem());
-	QQmlComponent component(engine, QUrl("qrc:/NetworkVisualizer/FileImage.qml"));
+	QQmlComponent component(engine, QUrl("qrc:/NetworkVisualizer/FileImage.qml"), this);
 	QObject* obj = component.create();
+
+	if(!component.isReady() && component.isError())
+		qDebug() << component.errorString();
+
 	QQuickItem* item = qobject_cast<QQuickItem*>(obj);
 	item->setParentItem(this->getItem());
+
+	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentHeightChanged()));
 
 	//Determining connector coordinates in EdgeItem CS
 	//for sender and receiver.
@@ -53,7 +59,7 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 
 	//Animation test from sender to receiver
 	item->setPosition(senderC);
-	QMetaObject::invokeMethod(obj, "startFileTransfer",
-							   Q_ARG(QVariant, receiverC));
+	/*QMetaObject::invokeMethod(obj, "startFileTransfer",
+							   Q_ARG(QVariant, receiverC));*/
 
 }

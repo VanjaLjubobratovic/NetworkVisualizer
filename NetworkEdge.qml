@@ -15,8 +15,18 @@ Qan.EdgeItem {
 		color: parent.color
 	}
 
-	/*Rectangle {
+	Rectangle {
 		anchors.fill: parent
-		color: "blue"
-	}*/
+		color: "transparent"
+		border.color: "blue"
+		border.width: 1
+	}
+
+	Rectangle {
+		x: 0
+		y: 0
+		color: "red"
+		width: 5
+		height: 5
+	}
 }
