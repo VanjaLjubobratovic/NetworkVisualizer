@@ -42,7 +42,7 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 	QQuickItem* item = qobject_cast<QQuickItem*>(obj);
 	item->setParentItem(this->getItem());
 
-	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentHeightChanged()));
+	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentDimensionsChanged()));
 
 	//Determining connector coordinates in EdgeItem CS
 	//for sender and receiver.
@@ -52,14 +52,17 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 	if(sender == this->getSource()) {
 		senderC = this->getItem()->getP1();
 		receiverC = this->getItem()->getP2();
+		item->setProperty("sender", "src");
 	} else {
 		senderC = this->getItem()->getP2();
 		receiverC = this->getItem()->getP1();
+		item->setProperty("sender", "dst");
 	}
 
 	//Animation test from sender to receiver
 	item->setPosition(senderC);
-	/*QMetaObject::invokeMethod(obj, "startFileTransfer",
-							   Q_ARG(QVariant, receiverC));*/
+	QMetaObject::invokeMethod(obj, "startFileTransfer",
+							   Q_ARG(QVariant, receiverC),
+							   Q_ARG(QVariant, 10000));
 
 }

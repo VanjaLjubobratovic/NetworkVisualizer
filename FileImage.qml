@@ -1,4 +1,5 @@
 import QtQuick 2.7
+import QtQml 2.3
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 
@@ -11,6 +12,9 @@ Item {
 
 	property int parentWidth: 0
 	property int parentHeight: 0
+	property int diagonal: 0
+	property real runningTime: 0
+	property string sender //Either dst or src node
 
 	Image {
 		id: fileImage
@@ -18,43 +22,87 @@ Item {
 		anchors.fill: parent
 	}
 
-	function startFileTransfer(direction) {
+	function startFileTransfer(direction, runningTime) {
 		xAnim.to = direction.x
 		yAnim.to = direction.y
-		animation.start();
+
+		calculateDiagonal()
+
+		fileTransferItem.runningTime = runningTime
+
+		xAnim.duration = runningTime
+		yAnim.duration = runningTime
+
+		animation.start()
 	}
 
-	function onParentHeightChanged() {
-		var oldW = parentWidth
-		var oldH = parentHeight
+	function onParentDimensionsChanged() {
+		animation.stop()
+
+		//Old distance to destination
+		var toX = xAnim.to
+		var toY = yAnim.to
+		var distance = Math.sqrt(Math.pow((toX - fileTransferItem.x), 2) + Math.pow((toY - fileTransferItem.y), 2))
+
+		var ratio = diagonal / distance
+
+		//console.log("OLD DIAG: ", diagonal)
+
+		//Calculating new values
 		parentWidth = fileTransferItem.parent.width
 		parentHeight = fileTransferItem.parent.height
+		calculateDiagonal() //new diagonal
+		var newDist = diagonal / ratio
 
-		console.log(parentWidth, oldW)
+		//console.log("DIST: ", distance, " DIAG: ", diagonal, " NEW: ", newDist, " R: ", ratio)
 
-		var ratioH = parentHeight / oldH
-		var ratioW = parentWidth / oldW
+		//Calculate direction vector
+		var senderCoords, receiverCoords
+		if(sender == "src") {
+			senderCoords = fileTransferItem.parent.p1
+			receiverCoords = fileTransferItem.parent.p2
+		} else {
+			senderCoords = fileTransferItem.parent.p2
+			receiverCoords = fileTransferItem.parent.p1
+		}
 
-		console.log(ratioH, ratioW)
+		//When I just subtract two QPointFs I just get NaN for some reason
+		var direction = Qt.point(receiverCoords.x - senderCoords.x, receiverCoords.y - senderCoords.y)
 
-		fileTransferItem.x *= ratioW
-		fileTransferItem.y *= ratioH
+		//Normalize direction vector
+		var dirLen = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2))
+		var normalizedDir = Qt.point(direction.x / dirLen, direction.y / dirLen)
 
-		//console.log(fileTransferItem.x, " ", fileTransferItem.y)
+		//New point coords
+		var newPoint = Qt.point(receiverCoords.x - (normalizedDir.x * newDist), receiverCoords.y - (normalizedDir.y * newDist))
 
-		//updatePosition()
+
+		/*console.log("DIR: ", direction, " NORM: ", normalizedDir, " NEW: ", newPoint,
+					" OLD: ", Qt.point(fileTransferItem.x, fileTransferItem.y))*/
+
+		fileTransferItem.x = newPoint.x
+		fileTransferItem.y = newPoint.y
+
+		//Modify animation
+		xAnim.to = receiverCoords.x
+		xAnim.from = newPoint.x
+		yAnim.to = receiverCoords.y
+		yAnim.from = newPoint.y
+
+		//Setting appropriate time left for animation
+		//Otherwise my code and animation would fight
+		//and results would be ugly
+		var progress = 1 - (newDist / diagonal)
+		var elapsed = progress * runningTime
+		xAnim.duration = runningTime - elapsed
+		yAnim.duration = runningTime - elapsed
+
+		console.log("Remaining time: ", progress * runningTime)
+		animation.start()
 	}
 
-	function updatePosition() {
-		if(fileTransferItem.parent == null)
-			return
-		var diagonalLen = Math.sqrt(Math.pow(parentWidth, 2) + Math.pow(parentHeight, 2))
-		var dx = (parentWidth - diagonalLen) / 2
-		var dy = (parentHeight - diagonalLen) / 2
-
-		fileTransferItem.x += dx
-		fileTransferItem.y += dy
-		console.log(dx, " ", dy)
+	function calculateDiagonal() {
+		fileTransferItem.diagonal = Math.sqrt(Math.pow(fileTransferItem.parentHeight, 2) + Math.pow(fileTransferItem.parentWidth, 2))
 	}
 
 	ParallelAnimation {
@@ -64,7 +112,7 @@ Item {
 			target: fileTransferItem
 			property: "x"
 			to: 0
-			duration: 2000
+			duration: 10000
 		}
 
 		PropertyAnimation {
@@ -72,7 +120,8 @@ Item {
 			target: fileTransferItem
 			property: "y"
 			to: 0
-			duration: 2000
+			duration: 10000
+
 		}
 	}
 
