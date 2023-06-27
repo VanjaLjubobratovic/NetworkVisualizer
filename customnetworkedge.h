@@ -5,7 +5,11 @@
 #include <QQmlEngine>
 #include <QuickQanava>
 
+#include "customnetworkgraph.h"
 #include "customnetworknode.h"
+
+class CustomNetworkNode;
+class NodeFile;
 
 class CustomNetworkEdge : public qan::Edge
 {

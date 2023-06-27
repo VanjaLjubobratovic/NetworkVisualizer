@@ -70,7 +70,10 @@ void CustomNetworkNode::clearNeighbours() {
 }
 
 bool CustomNetworkNode::addFile(QPointer<NodeFile> file) {
-	if(file && !containsFile(file->hashBytes)) {
+	if(file == nullptr)
+		return false;
+
+	if(!containsFile(file->hashBytes)) {
 		m_files.append(file);
 		setImage(QUrl());
 		return true;
@@ -89,6 +92,20 @@ bool CustomNetworkNode::removeFile(QByteArray hash) {
 	}
 
 	return false;
+}
+
+void CustomNetworkNode::sendFile(NodeFile *f, CustomNetworkNode *receiver) {
+	const qan::Node* node = dynamic_cast<qan::Node*>(receiver);
+	auto neighbours = receiver->getGraph()->collectNeighbours(*node);
+	//TODO: check if they are actually neighbours
+
+	for(auto e : receiver->getGraph()->get_edges()) {
+		if((e->getDestination() == receiver && e->getSource() == this) ||
+			(e->getSource() == receiver && e->getDestination() == this)) {
+			//auto edg = dynamic_cast<CustomNetworkEdge*>(e);
+			//edg->animateTransfer(this, receiver, f);
+		}
+	}
 }
 
 void CustomNetworkNode::setMalicious(bool malicious) {

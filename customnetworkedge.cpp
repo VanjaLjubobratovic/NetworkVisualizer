@@ -58,8 +58,11 @@ void CustomNetworkEdge::handleTransferEnded(QString objName, QString senderId, Q
 		file = dst->getFile(hash);
 	}
 
+	result = receiver->addFile(file);
+	qDebug() << result;
+
 	QMetaObject::invokeMethod(obj, "animateResult",
-							   Q_ARG(bool, receiver->addFile(file)));
+							   Q_ARG(bool, result));
 
 }
 

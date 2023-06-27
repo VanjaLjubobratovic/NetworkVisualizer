@@ -150,17 +150,12 @@ Item {
 			id: xAnim
 			target: fileTransferItem
 			property: "x"
-			to: 0
-			duration: 10000
 		}
 
 		PropertyAnimation {
 			id: yAnim
 			target: fileTransferItem
 			property: "y"
-			to: 0
-			duration: 10000
-
 		}
 	}
 

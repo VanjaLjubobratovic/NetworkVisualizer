@@ -36,6 +36,8 @@ class NodeFile : public QObject{
 	static QJsonObject fileToJSON(NodeFile* f);
 };
 
+//class CustomNetworkEdge;
+
 class CustomNetworkNode : public qan::Node
 {
 	Q_OBJECT
@@ -58,6 +60,7 @@ class CustomNetworkNode : public qan::Node
 	void clearNeighbours();
 	bool addFile(QPointer<NodeFile> file);
 	bool removeFile(QByteArray hash);
+	void sendFile(NodeFile* f, CustomNetworkNode* n);
 	void setMalicious(bool malicious);
 	void setActive(bool active);
 
