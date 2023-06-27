@@ -23,7 +23,7 @@ class CustomNetworkEdge : public qan::Edge
 	double getBandwidth();
 	bool isSendingData();
 
-	Q_INVOKABLE void animateTransfer(qan::Node* sender, qan::Node* receiver);
+	Q_INVOKABLE void animateTransfer(CustomNetworkNode* sender, CustomNetworkNode* receiver, NodeFile* file);
 
   public:
 	static  QQmlComponent*  delegate(QQmlEngine& engine, QObject* parent = nullptr) noexcept;
@@ -40,7 +40,7 @@ class CustomNetworkEdge : public qan::Edge
 	void setEdgeStyle();
 
   public slots:
-	void handleTransferEnded(QString objName);
+	void handleTransferEnded(QString objName, QString senderId, QString hash);
 };
 
 QML_DECLARE_TYPE(CustomNetworkEdge)

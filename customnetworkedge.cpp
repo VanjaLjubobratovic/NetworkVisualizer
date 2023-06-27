@@ -32,7 +32,7 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 	return customNetworkEdge_style.get();
 }
 
-void CustomNetworkEdge::handleTransferEnded(QString objName) {
+void CustomNetworkEdge::handleTransferEnded(QString objName, QString senderId, QString hash) {
 	qDebug() << "Transfer ended";
 	qDebug() << objName;
 
@@ -42,13 +42,28 @@ void CustomNetworkEdge::handleTransferEnded(QString objName) {
 		return;
 	}
 
-	//TODO: actually send file and check
+	auto src = dynamic_cast<CustomNetworkNode*>(this->getSource());
+	auto dst = dynamic_cast<CustomNetworkNode*>(this->getDestination());
+
+	CustomNetworkNode* receiver;
+	NodeFile* file;
+	bool result;
+
+	// Written like this for readability
+	if(src->getID() == senderId) {
+		receiver = dst;
+		file = src->getFile(hash);
+	} else {
+		receiver = src;
+		file = dst->getFile(hash);
+	}
+
 	QMetaObject::invokeMethod(obj, "animateResult",
-							   Q_ARG(bool, false));
+							   Q_ARG(bool, receiver->addFile(file)));
 
 }
 
-void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) {
+void CustomNetworkEdge::animateTransfer(CustomNetworkNode* sender, CustomNetworkNode* receiver, NodeFile* file) {
 	//QML item generation
 	QQmlEngine* engine = qmlEngine(this->getItem());
 	QQmlComponent component(engine, QUrl("qrc:/NetworkVisualizer/FileImage.qml"), this);
@@ -64,7 +79,7 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 	item->setParentItem(this->getItem());
 
 	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentDimensionsChanged()));
-	QObject::connect(item, SIGNAL(transferEnded(QString)), this, SLOT(handleTransferEnded(QString)));
+	QObject::connect(item, SIGNAL(transferEnded(QString, QString, QString)), this, SLOT(handleTransferEnded(QString, QString, QString)));
 
 	//Determining connector coordinates in EdgeItem CS
 	//for sender and receiver.
@@ -83,6 +98,8 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 
 	//Animation test from sender to receiver
 	item->setPosition(senderC);
+	item->setProperty("hash", QString::fromUtf8(file->hashBytes));
+	item->setProperty("senderId", sender->getID());
 	QMetaObject::invokeMethod(obj, "startFileTransfer",
 							   Q_ARG(QVariant, receiverC),
 							   Q_ARG(QVariant, 1000));

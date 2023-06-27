@@ -56,12 +56,13 @@ class CustomNetworkNode : public qan::Node
 	void addNeighbour(QPointer<CustomNetworkNode> n);
 	void removeNeighbour(QPointer<CustomNetworkNode> n);
 	void clearNeighbours();
-	void addFile(QPointer<NodeFile> file);
+	bool addFile(QPointer<NodeFile> file);
 	bool removeFile(QByteArray hash);
 	void setMalicious(bool malicious);
 	void setActive(bool active);
 
 	QString getID();
+	QPointer<NodeFile> getFile(QString hash);
 	QList<QPointer<CustomNetworkNode>> getNeighbours();
 	QList<QPointer<NodeFile>> getFiles();
 

@@ -15,8 +15,10 @@ Item {
 	property int diagonal: 0
 	property real runningTime: 0
 	property string sender //Either dst or src node
+	property string hash
+	property string senderId
 
-	signal transferEnded(objectId: string)
+	signal transferEnded(objectId: string, senderId: string, hash: string)
 
 	Image {
 		id: fileImage
@@ -130,14 +132,14 @@ Item {
 	onXChanged: {
 		if ((fileTransferItem.x == xAnim.to && fileTransferItem.y == yAnim.to)) {
 			console.log("Arrived")
-			transferEnded(fileTransferItem.objectName)
+			transferEnded(fileTransferItem.objectName, senderId, hash)
 		}
 	}
 
 	onYChanged: {
 		if ((fileTransferItem.x == xAnim.to && fileTransferItem.y == yAnim.to)) {
 			console.log("Arrived")
-			transferEnded(fileTransferItem.objectName)
+			transferEnded(fileTransferItem.objectName, senderId, hash)
 		}
 	}
 

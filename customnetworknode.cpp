@@ -69,10 +69,14 @@ void CustomNetworkNode::clearNeighbours() {
 	m_neighbours.clear();
 }
 
-void CustomNetworkNode::addFile(QPointer<NodeFile> file) {
-	if(!containsFile(file->hashBytes))
-			m_files.append(file);
-	setImage(QUrl());
+bool CustomNetworkNode::addFile(QPointer<NodeFile> file) {
+	if(file && !containsFile(file->hashBytes)) {
+		m_files.append(file);
+		setImage(QUrl());
+		return true;
+	}
+
+	return false;
 }
 
 bool CustomNetworkNode::removeFile(QByteArray hash) {
@@ -101,6 +105,15 @@ void CustomNetworkNode::setActive(bool active) {
 
 QString CustomNetworkNode::getID() {
 	return m_id;
+}
+
+QPointer<NodeFile> CustomNetworkNode::getFile(QString hash) {
+	for(auto file : m_files) {
+		if (file->hashBytes == hash.toUtf8())
+			return file;
+	}
+
+	return nullptr;
 }
 
 QList<QPointer<CustomNetworkNode> > CustomNetworkNode::getNeighbours() {
