@@ -1,5 +1,7 @@
 #include "customnetworkedge.h"
 
+#include <QQuickView>
+
 void CustomNetworkEdge::setId(const QString id) {
 	m_id = id;
 }
@@ -12,10 +14,10 @@ QQmlComponent*  CustomNetworkEdge::delegate(QQmlEngine& engine, QObject* parent)
 {
 	static std::unique_ptr<QQmlComponent>   customNetworkEdge_delegate;
 	if (!customNetworkEdge_delegate)
-		/*customNetworkEdge_delegate = std::make_unique<QQmlComponent>(&engine, "qrc:/CustomEdge.qml",
-															   QQmlComponent::PreferSynchronous, parent);*/
-		customNetworkEdge_delegate = std::make_unique<QQmlComponent>(&engine, "qrc:/QuickQanava/Edge.qml",
-																  QQmlComponent::PreferSynchronous, parent);
+		/*customNetworkEdge_delegate = std::make_unique<QQmlComponent>(&engine, "qrc:/QuickQanava/Edge.qml",
+																  QQmlComponent::PreferSynchronous, parent);*/
+		customNetworkEdge_delegate = std::make_unique<QQmlComponent>(&engine, "qrc:/NetworkVisualizer/NetworkEdge.qml",
+																	  QQmlComponent::PreferSynchronous, parent);
 	return customNetworkEdge_delegate.get();
 }
 
@@ -26,4 +28,41 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 	if ( !customNetworkEdge_style )
 		customNetworkEdge_style = std::make_unique<qan::EdgeStyle>();
 	return customNetworkEdge_style.get();
+}
+
+void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) {
+	//QML item generation
+	QQmlEngine* engine = qmlEngine(this->getItem());
+	QQmlComponent component(engine, QUrl("qrc:/NetworkVisualizer/FileImage.qml"), this);
+	QObject* obj = component.create();
+
+	if(!component.isReady() && component.isError())
+		qDebug() << component.errorString();
+
+	QQuickItem* item = qobject_cast<QQuickItem*>(obj);
+	item->setParentItem(this->getItem());
+
+	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentDimensionsChanged()));
+
+	//Determining connector coordinates in EdgeItem CS
+	//for sender and receiver.
+	//Has to be done this way since we are pretending
+	//edges are undirected.
+	QPointF senderC, receiverC;
+	if(sender == this->getSource()) {
+		senderC = this->getItem()->getP1();
+		receiverC = this->getItem()->getP2();
+		item->setProperty("sender", "src");
+	} else {
+		senderC = this->getItem()->getP2();
+		receiverC = this->getItem()->getP1();
+		item->setProperty("sender", "dst");
+	}
+
+	//Animation test from sender to receiver
+	item->setPosition(senderC);
+	QMetaObject::invokeMethod(obj, "startFileTransfer",
+							   Q_ARG(QVariant, receiverC),
+							   Q_ARG(QVariant, 10000));
+
 }
