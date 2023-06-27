@@ -6,7 +6,6 @@
 #include <QuickQanava>
 
 #include "customnetworknode.h"
-#include "appglobals.h"
 
 class CustomNetworkEdge : public qan::Edge
 {

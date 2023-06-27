@@ -12,23 +12,6 @@
 
 #include "graphmodel.h"
 #include "customnetworkgraph.h"
-#include "appglobals.h"
-
-QQmlApplicationEngine* g_appEngine = nullptr;
-
-//Function for accessing Qan.Graph element in QML
-/*QPointer<qan::Graph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
-	QPointer<qan::Graph> graph;
-	for (const auto rootObject : engine->rootObjects()) {
-		graph = qobject_cast<qan::Graph*>(rootObject->findChild<QQuickItem *>(itemId));
-		if(graph) {
-			qDebug() << "Graph element found" << graph;
-			qDebug() << "Graph view" << graph->parentItem();
-			break;
-		}
-	}
-	return graph;
-}*/
 
 QPointer<CustomNetworkGraph> findGraph(QQmlApplicationEngine* engine, QString itemId) {
 	QPointer<CustomNetworkGraph> graph;
@@ -80,8 +63,6 @@ int main(int argc, char *argv[])
 	engine.rootContext()->setContextProperty("graphModel", graphModel);
 
 	engine.load(url);
-
-	g_appEngine = &engine;
 
 	//Make this a graphModel method
 	//QPointer<qan::Graph> graph = findGraph(&engine, "graph");

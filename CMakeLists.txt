@@ -19,7 +19,6 @@ qt_add_executable(appNetworkVisualizer
 	customnetworkgraph.cpp
 	customnetworkedge.h
 	customnetworkedge.cpp
-	appglobals.h
 )
 
 
