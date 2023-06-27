@@ -33,12 +33,10 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 }
 
 void CustomNetworkEdge::handleTransferEnded(QString objName, QString senderId, QString hash) {
-	qDebug() << "Transfer ended";
-	qDebug() << objName;
 
 	QObject* obj = this->findChild<QObject*>(objName);
 	if(!obj) {
-		qDebug() << "Cannot find object";
+		qDebug() << "Cannot find object in handleTransferEnded";
 		return;
 	}
 
@@ -59,7 +57,6 @@ void CustomNetworkEdge::handleTransferEnded(QString objName, QString senderId, Q
 	}
 
 	result = receiver->addFile(file);
-	qDebug() << result;
 
 	QMetaObject::invokeMethod(obj, "animateResult",
 							   Q_ARG(bool, result));

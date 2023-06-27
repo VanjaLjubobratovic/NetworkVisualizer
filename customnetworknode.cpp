@@ -102,8 +102,8 @@ void CustomNetworkNode::sendFile(NodeFile *f, CustomNetworkNode *receiver) {
 	for(auto e : receiver->getGraph()->get_edges()) {
 		if((e->getDestination() == receiver && e->getSource() == this) ||
 			(e->getSource() == receiver && e->getDestination() == this)) {
-			//auto edg = dynamic_cast<CustomNetworkEdge*>(e);
-			//edg->animateTransfer(this, receiver, f);
+			auto edg = dynamic_cast<CustomNetworkEdge*>(e);
+			edg->animateTransfer(this, receiver, f);
 		}
 	}
 }

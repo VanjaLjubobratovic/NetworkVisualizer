@@ -487,14 +487,6 @@ void GraphModel::onDrawNewEdge(qan::Edge* e) {
 	m_edgeMap.insert(id, edge);
 
 	qDebug() << "New edge inserted:" << id;
-
-	//TODO: remove this test
-	NodeFile* nf = new NodeFile("bla", "bla", FileType::generic, 1000, QString("abcdef").toUtf8());
-	auto n = dynamic_cast<CustomNetworkNode*>(edge->getSource());
-	n->addFile(nf);
-	edge->animateTransfer(dynamic_cast<CustomNetworkNode*>(edge->getSource()),
-						  dynamic_cast<CustomNetworkNode*>(edge->getDestination()),
-						  nf);
 }
 
 //Function for finding a key for a specified node object

@@ -11,6 +11,7 @@
 #include <QuickQanava>
 
 #include "customnetworkgraph.h"
+#include "customnetworkedge.h"
 
 enum FileType {
 	txt,
@@ -36,7 +37,7 @@ class NodeFile : public QObject{
 	static QJsonObject fileToJSON(NodeFile* f);
 };
 
-//class CustomNetworkEdge;
+class CustomNetworkEdge;
 
 class CustomNetworkNode : public qan::Node
 {
