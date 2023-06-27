@@ -1,6 +1,8 @@
 #include "customnetworkedge.h"
 
 #include <QQuickView>
+#include <thread>
+#include <chrono>
 
 void CustomNetworkEdge::setId(const QString id) {
 	m_id = id;
@@ -30,6 +32,22 @@ qan::EdgeStyle* CustomNetworkEdge::style(QObject* parent) noexcept
 	return customNetworkEdge_style.get();
 }
 
+void CustomNetworkEdge::handleTransferEnded(QString objName) {
+	qDebug() << "Transfer ended";
+	qDebug() << objName;
+
+	QObject* obj = this->findChild<QObject*>(objName);
+	if(!obj) {
+		qDebug() << "Cannot find object";
+		return;
+	}
+
+	//TODO: actually send file and check
+	QMetaObject::invokeMethod(obj, "animateResult",
+							   Q_ARG(bool, false));
+
+}
+
 void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) {
 	//QML item generation
 	QQmlEngine* engine = qmlEngine(this->getItem());
@@ -39,10 +57,14 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 	if(!component.isReady() && component.isError())
 		qDebug() << component.errorString();
 
+	obj->setObjectName(QUuid::createUuid().toString());
+	obj->setParent(this);
+
 	QQuickItem* item = qobject_cast<QQuickItem*>(obj);
 	item->setParentItem(this->getItem());
 
 	QObject::connect(this->getItem(), SIGNAL(dstAngleChanged()), item, SLOT(onParentDimensionsChanged()));
+	QObject::connect(item, SIGNAL(transferEnded(QString)), this, SLOT(handleTransferEnded(QString)));
 
 	//Determining connector coordinates in EdgeItem CS
 	//for sender and receiver.
@@ -63,6 +85,7 @@ void CustomNetworkEdge::animateTransfer(qan::Node* sender, qan::Node* receiver) 
 	item->setPosition(senderC);
 	QMetaObject::invokeMethod(obj, "startFileTransfer",
 							   Q_ARG(QVariant, receiverC),
-							   Q_ARG(QVariant, 10000));
+							   Q_ARG(QVariant, 1000));
+
 
 }

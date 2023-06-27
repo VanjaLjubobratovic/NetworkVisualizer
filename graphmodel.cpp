@@ -266,9 +266,6 @@ void GraphModel::handleSocketData() {
 	QString command = document.object().value("command").toString();
 	QJsonObject payload = document.object().value("payload").toObject();
 
-	/*qDebug() << QString::fromUtf8(data);
-	qDebug() << document;*/
-
 	if(command == "insertNode") {
 		handleInsertNodeCommand(payload, clientSocket);
 	} else if(command == "removeNode") {
@@ -288,9 +285,6 @@ void GraphModel::handleSocketData() {
 	} else {
 		qDebug() << "Unknown command";
 	}
-
-	QString response = "Command " + command + " received and processed";
-	//clientSocket->write(response.toUtf8());
 }
 
 void GraphModel::handleInsertNodeCommand(const QJsonObject nodeObj, QTcpSocket* socket) {
@@ -494,9 +488,8 @@ void GraphModel::onDrawNewEdge(qan::Edge* e) {
 
 	qDebug() << "New edge inserted:" << id;
 
-	//TODO: remove this, file sending test
-	edge->animateTransfer(edge->getDestination(), edge->getSource());
-	//edge->animateTransfer(edge->getSource(), edge->getDestination());
+	//TODO: remove this test
+	edge->animateTransfer(edge->getSource(), edge->getDestination());
 }
 
 //Function for finding a key for a specified node object

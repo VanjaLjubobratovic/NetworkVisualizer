@@ -16,10 +16,19 @@ Item {
 	property real runningTime: 0
 	property string sender //Either dst or src node
 
+	signal transferEnded(objectId: string)
+
 	Image {
 		id: fileImage
 		source: "qrc:/FileIcons/containsfiles.png"
 		anchors.fill: parent
+	}
+
+	Image {
+		id: resultImage
+		anchors.fill: parent
+		visible: false
+		z:2
 	}
 
 	function startFileTransfer(direction, runningTime) {
@@ -105,6 +114,34 @@ Item {
 		fileTransferItem.diagonal = Math.sqrt(Math.pow(fileTransferItem.parentHeight, 2) + Math.pow(fileTransferItem.parentWidth, 2))
 	}
 
+	function animateResult(result: bool) {
+		if(result) {
+			resultImage.source = "qrc:/FileIcons/accepted.png"
+		} else {
+			resultImage.source = "qrc:/FileIcons/rejected.png"
+		}
+
+		resultImage.visible = true
+		resultImage.x = fileImage.x
+		resultImage.y = fileImage.y
+		resultAnimation.start()
+	}
+
+	onXChanged: {
+		if ((fileTransferItem.x == xAnim.to && fileTransferItem.y == yAnim.to)) {
+			console.log("Arrived")
+			transferEnded(fileTransferItem.objectName)
+		}
+	}
+
+	onYChanged: {
+		if ((fileTransferItem.x == xAnim.to && fileTransferItem.y == yAnim.to)) {
+			console.log("Arrived")
+			transferEnded(fileTransferItem.objectName)
+		}
+	}
+
+
 	ParallelAnimation {
 		id: animation
 		PropertyAnimation {
@@ -125,12 +162,41 @@ Item {
 		}
 	}
 
+	SequentialAnimation {
+		id: resultAnimation
+
+		PropertyAnimation {
+			target: resultImage
+			property: "opacity"
+			from: 0
+			to: 1
+			duration: 500
+		}
+
+		ParallelAnimation {
+			PropertyAnimation {
+				target: resultImage
+				property: "opacity"
+				from: 1
+				to: 0
+				duration: 500
+			}
+
+			PropertyAnimation {
+				target: fileImage
+				property: "opacity"
+				from: 1
+				to: 0
+				duration: 500
+			}
+		}
+	}
+
 	onParentChanged: {
 		if(fileTransferItem.parent !== null) {
 			parentWidth = fileTransferItem.parent.width
 			parentHeight = fileTransferItem.parent.height
 		}
 	}
-
 
 }
