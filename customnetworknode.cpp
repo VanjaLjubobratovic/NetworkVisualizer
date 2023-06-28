@@ -95,6 +95,11 @@ bool CustomNetworkNode::removeFile(QByteArray hash) {
 }
 
 void CustomNetworkNode::sendFile(NodeFile *f, CustomNetworkNode *receiver) {
+	if(f == nullptr || receiver == nullptr) {
+		qDebug() << "File not found";
+		return;
+	}
+
 	const qan::Node* node = dynamic_cast<qan::Node*>(receiver);
 	auto neighbours = receiver->getGraph()->collectNeighbours(*node);
 	//TODO: check if they are actually neighbours

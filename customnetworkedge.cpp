@@ -100,9 +100,11 @@ void CustomNetworkEdge::animateTransfer(CustomNetworkNode* sender, CustomNetwork
 	item->setPosition(senderC);
 	item->setProperty("hash", QString::fromUtf8(file->hashBytes));
 	item->setProperty("senderId", sender->getID());
+
+	int time = QRandomGenerator::global()->bounded(2000, 5000);
 	QMetaObject::invokeMethod(obj, "startFileTransfer",
 							   Q_ARG(QVariant, receiverC),
-							   Q_ARG(QVariant, 1000));
+							   Q_ARG(QVariant, time));
 
 
 }

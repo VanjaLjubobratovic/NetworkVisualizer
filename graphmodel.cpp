@@ -282,6 +282,8 @@ void GraphModel::handleSocketData() {
 		handleSetActiveCommand(payload, clientSocket);
 	} else if (command == "setMalicious") {
 		handleSetMaliciousCommand(payload, clientSocket);
+	} else if (command == "sendFile") {
+		handleSendFileCommand(payload, clientSocket);
 	} else {
 		qDebug() << "Unknown command";
 	}
@@ -341,6 +343,9 @@ void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket *
 		m_graphElement->removeEdge(e);
 		response["result"] = "Failure";
 		response["reason"] = "Edge already exists";
+	} else if (srcId == dstId) {
+		response["result"] = "Failure";
+		response["reason"] = "Invalid src and dst";
 	} else {
 		response["result"] = "Success";
 		edg->setId(GraphModel::generateUID(m_edgeMap));
@@ -349,6 +354,8 @@ void GraphModel::handleInsertEdgeCommand(const QJsonObject edgeObj, QTcpSocket *
 
 	response["edgeId"] = edg->getId();
 	response["command"] = "insertEdge";
+	response["node1"] = srcId;
+	response["node2"] = dstId;
 
 	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
@@ -428,7 +435,7 @@ void GraphModel::handleSetActiveCommand(const QJsonObject payload, QTcpSocket *s
 	bool active = payload.value("active").toBool();
 
 	if(auto n = m_nodeMap.value(nodeId)) {
-		response["message"] = "Success";
+		response["result"] = "Success";
 		n->setActive(active);
 	} else {
 		response["result"] = "Failure";
@@ -447,7 +454,7 @@ void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket
 	bool malicious = payload.value("malicious").toBool();
 
 	if(auto n = m_nodeMap.value(nodeId)) {
-		response["message"] = "Success";
+		response["result"] = "Success";
 		n->setMalicious(malicious);
 	} else {
 		response["result"] = "Failure";
@@ -457,6 +464,20 @@ void GraphModel::handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket
 	response["command"] = "setMalicious";
 	response["nodeId"] = nodeId;
 
+	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
+}
+
+void GraphModel::handleSendFileCommand(const QJsonObject payload, QTcpSocket *socket) {
+	QJsonObject response;
+	QString senderId = payload.value("senderId").toString();
+	QString receiverId = payload.value("receiverId").toString();
+	QString hash = payload.value("hash").toString();
+
+	auto senderN = m_nodeMap.value(senderId);
+	senderN->sendFile(senderN->getFile(hash), m_nodeMap.value(receiverId));
+	//TODO: response
+
+	response["result"] = "Success";
 	socket->write(QJsonDocument(response).toJson(QJsonDocument::JsonFormat::Compact));
 }
 

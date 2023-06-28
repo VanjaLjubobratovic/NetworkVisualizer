@@ -74,6 +74,7 @@ class GraphModel : public QObject
 	void handleRemoveFileCommand(const QJsonObject fileObj, QTcpSocket* socket);
 	void handleSetActiveCommand(const QJsonObject payload, QTcpSocket* socket);
 	void handleSetMaliciousCommand(const QJsonObject payload, QTcpSocket* socket);
+	void handleSendFileCommand(const QJsonObject payload, QTcpSocket* socket);
 
   private:
 	QPointer<CustomNetworkGraph> m_graphElement;
